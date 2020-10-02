@@ -1,0 +1,7 @@
+{
+  "name": "sechovequechova",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
