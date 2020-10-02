@@ -1,145 +1,129 @@
 import { IonContent, IonLoading, IonPage } from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
 import "./Home.css";
-import { createMuiTheme } from "@material-ui/core/styles";
-import { ThemeProvider } from "@material-ui/styles";
-import Search from "../components/shared/Search";
-import "../models/Daily";
-import Daily from "../models/Daily";
-import Hourly from "../models/Hourly";
 
-const theme = createMuiTheme({
-  palette: {
-    type: "dark",
-  },
-});
+import Search from "../components/Search";
+import { getWeatherData as getApiWeatherData } from "../api/aemet/services/aemet-service";
+import Weather from "../shared/models/Weather";
+import { useEffect } from "react";
+
+import { MdClose, MdLocationOn, MdSearch } from "react-icons/md";
+import { IoMdSunny, IoMdMoon } from "react-icons/io";
+
+import Current from "../components/Current";
+import Divisor from "../shared/components/Divisor";
+import { Plugins } from "@capacitor/core";
+const { Storage } = Plugins;
 
 const Home: React.FC = () => {
+  const [theme, setTheme]: [string, SetStateAction<any>] = useState("");
   const [showLoading, setShowLoading]: [
     boolean,
     SetStateAction<any>
   ] = useState(false);
 
   const [searching, setSearching]: [boolean, SetStateAction<any>] = useState(
-    true
+    false
   );
 
-  const [hourlyData, setHourlyData]: [Hourly, SetStateAction<any>] = useState(
-    {}
-  );
-
-  const [dailyData, setDailyData]: [Daily, SetStateAction<any>] = useState({});
+  const [weatherData, setWeatherData]: [
+    Weather,
+    SetStateAction<any>
+  ] = useState({});
 
   const handleSetCurrent = async (id: string) => {
     setShowLoading(true);
+    localStorage.setItem("city_id", id);
 
-    await Promise.all([getHourlyData(id), getDailyData(id)]);
+    await getApiWeatherData(id, setWeatherData);
+
     setShowLoading(false);
   };
 
-  const getHourlyData = (id: string) => {
-    return fetch(
-      `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${id}`,
-      {
-        headers: {
-          accept: "application/json",
-          api_key:
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0",
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result.estado === 200) {
-            return fetch(result.datos, {
-              headers: {
-                accept: "application/json",
-                api_key:
-                  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0",
-              },
-            })
-              .then((res) => res.json())
-              .then(
-                (data: Daily[]) => {
-                  console.log("hourly", data[0]);
-                  setHourlyData(data[0]);
-                },
-                (error) => {
-                  console.error(error);
-                }
-              );
-          } else {
-            console.error(result.descripcion);
-          }
-        },
-        (error) => {
-          console.error("err!", error);
-        }
-      );
+  const saveTheme = async (theme: string) => {
+    await Storage.set({
+      key: "theme",
+      value: theme,
+    });
   };
 
-  const getDailyData = (id: string) => {
-    return fetch(
-      `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${id}`,
-      {
-        headers: {
-          accept: "application/json",
-          api_key:
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0",
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result.estado === 200) {
-            return fetch(result.datos, {
-              headers: {
-                accept: "application/json",
-                api_key:
-                  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0",
-              },
-            })
-              .then((res) => res.json())
-              .then(
-                (data: Daily[]) => {
-                  console.log("daily", data[0]);
-                  setDailyData(data[0]);
-                },
-                (error) => {
-                  console.error(error);
-                }
-              );
-          } else {
-            console.error(result.descripcion);
-          }
-        },
-        (error) => {
-          console.error("err!", error);
-        }
-      );
+  const getSavedTheme = () => {
+    return Storage.get({
+      key: "theme",
+    });
   };
 
-  const getCurrentTemp = () => {
-    return null;
-    // return hourlyData?.prediccion?.dia?
-    // .temperatura?.find((t)=>t.periodo===(new Date()).getHours()).;
+  const handleInitialTheme = async () => {
+    const theme = (await getSavedTheme()).value;
+    if (!theme) {
+      document.body.setAttribute("data-theme", "dark");
+      saveTheme("dark");
+      setTheme("dark");
+    } else {
+      document.body.setAttribute("data-theme", theme || "");
+      setTheme(theme);
+    }
+  };
+
+  useEffect(() => {
+    handleInitialTheme();
+
+    if (localStorage.getItem("city_id")) {
+      getApiWeatherData(localStorage.getItem("city_id"), setWeatherData);
+    } else {
+      setSearching(true);
+    }
+  }, []);
+
+  const handleTheme = async () => {
+    const currentTheme = (await getSavedTheme()).value;
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    document.body.setAttribute("data-theme", newTheme || "");
+    saveTheme(newTheme);
+    setTheme(newTheme);
   };
 
   return (
     <IonPage>
       <IonContent fullscreen>
-        <ThemeProvider theme={theme}>
-          {searching && (
-            <Search
-              setCurrentCity={handleSetCurrent}
-              setSearching={setSearching}
-            />
+        <div className="Home__top-bar">
+          {weatherData && (
+            <div className="Home__top-bar-city">
+              <MdLocationOn />
+              <div className="Home__top-bar-city-name">{weatherData.city}</div>
+            </div>
           )}
 
-          {!searching && dailyData && <h1>{dailyData.nombre}</h1>}
-        </ThemeProvider>
+          {theme === "light" ? (
+            <IoMdSunny className="Home__top-bar-theme" onClick={handleTheme} />
+          ) : (
+            <IoMdMoon className="Home__top-bar-theme" onClick={handleTheme} />
+          )}
+
+          {searching ? (
+            <div className="Home__top-bar-cancel">
+              <MdClose onClick={() => setSearching(false)} />
+            </div>
+          ) : (
+            <div className="Home__top-bar-search">
+              <MdSearch onClick={() => setSearching(true)} />
+            </div>
+          )}
+        </div>
+
+        {searching && (
+          <Search
+            setCurrentCity={handleSetCurrent}
+            setSearching={setSearching}
+          />
+        )}
+
+        {!searching && weatherData && (
+          <div>
+            <Current weatherData={weatherData} />
+            <Divisor width={80} borderWidth={2} />
+          </div>
+        )}
 
         <IonLoading isOpen={showLoading} message={"Cargando..."} />
       </IonContent>

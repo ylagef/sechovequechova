@@ -1,18 +1,33 @@
-.Home__search-IonItem {
-  --background: transparent;
-  --border-color: var(--ion-text-color, #000);
+.Home__top-bar {
+  width: 100%;
+
+  padding: 15px 25px 0 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.Home__cities-list-city-div {
-  width: 100%;
-  padding: 5px 10px;
+.Home__top-bar-city {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 33.33%;
 }
 
-.Home__cities-list-city-div-inner {
-  width: 100%;
-  padding: 10px;
-  margin: 2.5px 0;
-  border: 1px solid var(--ion-text-color, #000);
-  border-radius: 5px;
-  text-align: center;
+.Home__top-bar-theme {
+  width: 33.33%;
+  font-size: 1.5rem;
+}
+
+.Home__top-bar-city-name {
+  margin-left: 5px;
+}
+
+.Home__top-bar-search,
+.Home__top-bar-cancel {
+  text-align: right;
+  font-size: 2rem;
+  width: 33.33%;
 }

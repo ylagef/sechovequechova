@@ -1,0 +1,8 @@
+.Divisor {
+  width: 100%;
+}
+
+.Divisor__inner {
+  border-top: 1px solid lightgrey;
+  margin: 10px auto;
+}

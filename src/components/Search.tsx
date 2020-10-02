@@ -1,7 +1,8 @@
 import { IonItem, IonLabel, IonInput } from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
-import townCodes from "../../static/town-codes";
-import Card from "./Card";
+import townCodes from "../api/aemet/static/town-codes";
+import Card from "../shared/components/Card";
+import "./Search.css";
 
 interface ContainerProps {
   setCurrentCity: any;
@@ -10,7 +11,7 @@ interface ContainerProps {
 
 const Search: React.FC<ContainerProps> = (props) => {
   const [searchValue, setSearchValue]: [string, SetStateAction<any>] = useState(
-    "our"
+    ""
   );
 
   const getFilteredCities = () => {
@@ -28,9 +29,9 @@ const Search: React.FC<ContainerProps> = (props) => {
 
   return (
     <div className="Search">
-      <div className="Home__searching-div">
+      <div className="Search__searching-div">
         <Card>
-          <IonItem className="Home__search-IonItem">
+          <IonItem className="Search__search-IonItem">
             <IonLabel position="floating">Ciudad</IonLabel>
             <IonInput
               value={searchValue}
@@ -43,11 +44,11 @@ const Search: React.FC<ContainerProps> = (props) => {
             <Card>
               {getFilteredCities().map((value, i) => (
                 <div
-                  className="Home__cities-list-city-div fade-in"
+                  className="Search__cities-list-city-div fade-in"
                   key={i}
                   onClick={() => selectCity(value.id)}
                 >
-                  <div className="Home__cities-list-city-div-inner">
+                  <div className="Search__cities-list-city-div-inner">
                     <label>{value.nm}</label>
                   </div>
                 </div>

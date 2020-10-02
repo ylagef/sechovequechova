@@ -1,0 +1,65 @@
+.Current {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.Current__current-temperature {
+  width: 50%;
+  padding: 15px 0;
+  text-align: center;
+
+  font-family: "Montserrat", sans-serif !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.Current__current-temperature-current {
+  font-size: 75px;
+  font-weight: 700;
+  width: 100%;
+}
+
+.Current__current-temperature-min,
+.Current__current-temperature-max {
+  display: flex;
+  align-items: center;
+
+  font-size: 20px;
+  font-weight: 200;
+  width: 100%;
+}
+
+.Current__current-temperature-min {
+  justify-content: flex-start;
+}
+
+.Current__current-temperature-max {
+  justify-content: flex-end;
+}
+
+.Current__current-sun {
+  width: 70%;
+  padding: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.Current__current-sun-sunrise,
+.Current__current-sun-sunset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Current__current-sun-text {
+  margin: 0 10px;
+}
