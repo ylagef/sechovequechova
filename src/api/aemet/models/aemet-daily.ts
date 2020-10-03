@@ -1,11 +1,11 @@
 export default interface AemetDaily {
-    origen: Origen;
-    elaborado: string;
-    nombre: string;
-    provincia: string;
-    prediccion: Prediccion;
-    id: number;
-    version: number;
+    origen?: Origen;
+    elaborado?: string;
+    nombre?: string;
+    provincia?: string;
+    prediccion?: Prediccion;
+    id?: number;
+    version?: number;
 }
 
 interface Prediccion {

@@ -1,11 +1,11 @@
 export default interface AemetHourly {
-    origen: Origen;
-    elaborado: string;
-    nombre: string;
-    provincia: string;
-    prediccion: Prediccion;
-    id: string;
-    version: string;
+    origen?: Origen;
+    elaborado?: string;
+    nombre?: string;
+    provincia?: string;
+    prediccion?: Prediccion;
+    id?: string;
+    version?: string;
 }
 
 interface Prediccion {

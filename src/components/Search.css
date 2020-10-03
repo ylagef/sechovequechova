@@ -1,6 +1,12 @@
 .Search__search-IonItem {
   --background: transparent;
   --border-color: var(--ion-text-color, #000);
+  --color: var(--ion-text-color, #000);
+  --highlight-background: transparent;
+}
+
+.Search__search-IonLabel {
+  color: var(--ion-text-color, #000) !important;
 }
 
 .Search__cities-list-city-div {

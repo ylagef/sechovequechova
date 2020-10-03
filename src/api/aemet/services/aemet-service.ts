@@ -1,8 +1,6 @@
 import Weather from "../../../shared/models/Weather";
 import AemetDaily from "../models/aemet-daily";
 import AemetHourly from "../models/aemet-hourly";
-import dailyMock from "../static/daily-mock";
-import hourlyMock from "../static/hourly-mock";
 import axios from 'axios';
 import { Plugins } from "@capacitor/core";
 const { Storage } = Plugins;
@@ -16,7 +14,7 @@ async function getHourly(id: string): Promise<any> {
 
     if (url) {
         console.log('url from cache', url);
-        return getHourlyData(url);
+        return getHourlyData(url, id);
     } else {
         return axios({
             url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${id}?api_key=${apiKey}`,
@@ -29,18 +27,27 @@ async function getHourly(id: string): Promise<any> {
                 value: response.data.datos
             });
             console.log('url!', response.data.datos);
-            return getHourlyData(response.data.datos);
+            return getHourlyData(response.data.datos, id);
         });
     }
 };
 
-function getHourlyData(url: string) {
+function getHourlyData(url: string, id: string) {
     return axios({
         url: `${url}`,
         method: 'get'
-    }).then(response => {
-        // console.log(response);
-        return response.data[0] as AemetHourly;
+    }).then(async response => {
+        if (response.data.estado === 404) {
+            // Error on query
+            console.warn(response.data.descripcion);
+            await Storage.remove({
+                key: `hourly_${id}`,
+            });
+
+            return getHourly(id);
+        } else {
+            return response.data[0] as AemetHourly;
+        }
     });
 }
 
@@ -51,7 +58,7 @@ async function getDaily(id: string): Promise<any> {
 
     if (url) {
         console.log('url from cache', url);
-        return getDailyData(url);
+        return getDailyData(url, id);
     } else {
         return axios({
             url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${id}?api_key=${apiKey}`,
@@ -64,18 +71,27 @@ async function getDaily(id: string): Promise<any> {
                 value: response.data.datos
             });
             console.log('url!', response.data.datos);
-            return getDailyData(response.data.datos);
+            return getDailyData(response.data.datos, id);
         });
     }
 };
 
-function getDailyData(url: string) {
+function getDailyData(url: string, id: string) {
     return axios({
         url: `${url}`,
         method: 'get'
-    }).then(response => {
-        // console.log(response);
-        return response.data[0] as AemetDaily;
+    }).then(async response => {
+        if (response.data.estado === 404) {
+            // Error on query
+            console.warn(response.data.descripcion);
+            await Storage.remove({
+                key: `daily_${id}`,
+            });
+
+            return getDaily(id);
+        } else {
+            return response.data[0] as AemetDaily;
+        }
     });
 }
 
@@ -91,7 +107,7 @@ function getDataByDate(data: any, date: string, param: string, periodo?: string)
 function getMinValue(data: any, date: string, param: string): any {
     let min = 1000;
     data.prediccion.dia
-        .find((d: any) => d.fecha.includes(date))[param].map(
+        .find((d: any) => d.fecha.includes(date))[param].forEach(
             (v: any, _: any) => {
                 if (+v.value < min) {
                     min = +v.value;
@@ -104,7 +120,7 @@ function getMinValue(data: any, date: string, param: string): any {
 function getMaxValue(data: any, date: string, param: string): any {
     let max = 0;
     data.prediccion.dia
-        .find((d: any) => d.fecha.includes(date))[param].map(
+        .find((d: any) => d.fecha.includes(date))[param].forEach(
             (v: any, _: any) => {
                 if (+v.value > max) {
                     max = +v.value;
@@ -117,7 +133,7 @@ function getMaxValue(data: any, date: string, param: string): any {
 function getAvg(day: any, param: string, param2: string): any {
     let total = 0;
     let amount = 0;
-    day[param].map(
+    day[param].forEach(
         (v: any, _: any) => {
             total += +v[param2];
             amount++;
@@ -127,15 +143,13 @@ function getAvg(day: any, param: string, param2: string): any {
 };
 
 export async function getWeatherData(id: any, setWeatherData: any): Promise<any> {
-    // const daily: AemetDaily = dailyMock[0];
-    // const hourly: AemetHourly = hourlyMock[0];
-    const daily: AemetDaily = await getDaily(id);
-    const hourly: AemetHourly = await getHourly(id);
+    const [daily, hourly] = await Promise.all([getDaily(id), getHourly(id)]);
 
     console.log('d', daily);
     console.log('h', hourly);
 
     let weather: Weather = {};
+    weather.id = id;
     weather.city = daily.nombre;
 
     const date = new Date();
@@ -146,6 +160,7 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
         feelsLike: +getDataByDate(hourly, currentDate, 'sensTermica', currentPeriod).value,
         min: getMinValue(hourly, currentDate, 'temperatura'),
         max: getMaxValue(hourly, currentDate, 'temperatura'),
+        sky: getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion,
         rain: +getDataByDate(hourly, currentDate, 'precipitacion', currentPeriod).value,
         humidity: +getDataByDate(hourly, currentDate, 'humedadRelativa', currentPeriod).value,
         windSpeed: +getDataByDate(hourly, currentDate, 'vientoAndRachaMax', currentPeriod).velocidad[0],
@@ -157,7 +172,7 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
     weather.updated = new Date(daily.elaborado);
 
     weather.daily = [];
-    daily.prediccion.dia.forEach((day) => {
+    daily.prediccion.dia.forEach((day: any) => {
         weather.daily?.push({
             min: day.temperatura.minima,
             max: day.temperatura.maxima,
@@ -168,17 +183,17 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
     });
 
     weather.hourly = [];
-    hourly.prediccion.dia.forEach((day) => {
-        // // console.log(day);
-        // weather.daily?.push({
-        //     min: day.temperatura.minima,
-        //     max: day.temperatura.maxima,
-        //     rain: getAvg(day, 'probPrecipitacion', 'value'),
-        //     humidity: (day.humedadRelativa.minima + day.humedadRelativa.maxima) / 2,
-        //     windSpeed: getAvg(day, 'viento', 'velocidad'),
-        // });
-    });
+    // hourly.prediccion.dia.forEach((day: any) => {
+    // // console.log(day);
+    // weather.daily?.push({
+    //     min: day.temperatura.minima,
+    //     max: day.temperatura.maxima,
+    //     rain: getAvg(day, 'probPrecipitacion', 'value'),
+    //     humidity: (day.humedadRelativa.minima + day.humedadRelativa.maxima) / 2,
+    //     windSpeed: getAvg(day, 'viento', 'velocidad'),
+    // });
+    // });
 
-    // console.log(weather);
+    console.log(weather);
     return setWeatherData(weather);
 }

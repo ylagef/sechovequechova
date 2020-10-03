@@ -3,6 +3,8 @@ import Daily from "./Daily";
 import Hourly from "./Hourly";
 
 export default interface Weather {
+    id?: string;
+
     city?: string;
 
     daily?: Daily[];

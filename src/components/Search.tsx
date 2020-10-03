@@ -32,7 +32,9 @@ const Search: React.FC<ContainerProps> = (props) => {
       <div className="Search__searching-div">
         <Card>
           <IonItem className="Search__search-IonItem">
-            <IonLabel position="floating">Ciudad</IonLabel>
+            <IonLabel className="Search__search-IonLabel" position="floating">
+              Ciudad
+            </IonLabel>
             <IonInput
               value={searchValue}
               onIonChange={(e) => setSearchValue(e.detail.value)}

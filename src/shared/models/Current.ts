@@ -4,6 +4,8 @@ export default interface Current {
     min?: number;
     max?: number;
 
+    sky?: string;
+
     rain?: number;
 
     humidity?: number;

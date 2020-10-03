@@ -1,4 +1,11 @@
-import { IonContent, IonLoading, IonPage } from "@ionic/react";
+import {
+  IonContent,
+  IonHeader,
+  IonLoading,
+  IonPage,
+  IonRefresher,
+  IonToolbar,
+} from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
 import "./Home.css";
 
@@ -12,6 +19,8 @@ import { IoMdSunny, IoMdMoon } from "react-icons/io";
 
 import Current from "../components/Current";
 import Divisor from "../shared/components/Divisor";
+import { RefresherEventDetail } from "@ionic/core";
+
 import { Plugins } from "@capacitor/core";
 const { Storage } = Plugins;
 
@@ -30,6 +39,13 @@ const Home: React.FC = () => {
     Weather,
     SetStateAction<any>
   ] = useState({});
+
+  const doRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+    setShowLoading(true);
+    await getApiWeatherData(weatherData.id, setWeatherData);
+    event.detail.complete();
+    setShowLoading(false);
+  };
 
   const handleSetCurrent = async (id: string) => {
     setShowLoading(true);
@@ -59,11 +75,11 @@ const Home: React.FC = () => {
   const handleInitialTheme = async () => {
     const theme = (await getSavedTheme()).value;
     if (!theme) {
-      document.body.setAttribute("data-theme", "dark");
+      document.body.classList.toggle("dark", true);
       saveTheme("dark");
       setTheme("dark");
     } else {
-      document.body.setAttribute("data-theme", theme || "");
+      document.body.classList.toggle("dark", theme === "dark");
       setTheme(theme);
     }
   };
@@ -94,18 +110,18 @@ const Home: React.FC = () => {
   const handleTheme = async () => {
     const currentTheme = (await getSavedTheme()).value;
     const newTheme = currentTheme === "dark" ? "light" : "dark";
-    document.body.setAttribute("data-theme", newTheme || "");
+    document.body.classList.toggle("dark", newTheme === "dark");
     saveTheme(newTheme);
     setTheme(newTheme);
   };
 
   return (
     <IonPage>
-      <IonContent fullscreen>
-        <div className="Home__top-bar">
-          {weatherData && (
+      <IonHeader>
+        <IonToolbar>
+          <div className="Home__top-bar">
             <div className="Home__top-bar-city">
-              {weatherData.city && (
+              {weatherData.id && (
                 <div className="Home__top-bar-city-inner">
                   <MdLocationOn />
                   <div className="Home__top-bar-city-name">
@@ -114,41 +130,48 @@ const Home: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
 
-          {theme === "light" ? (
-            <IoMdSunny className="Home__top-bar-theme" onClick={handleTheme} />
-          ) : (
-            <IoMdMoon className="Home__top-bar-theme" onClick={handleTheme} />
-          )}
+            {theme === "light" ? (
+              <IoMdSunny
+                className="Home__top-bar-theme"
+                onClick={handleTheme}
+              />
+            ) : (
+              <IoMdMoon className="Home__top-bar-theme" onClick={handleTheme} />
+            )}
 
-          {searching ? (
-            <div className="Home__top-bar-cancel">
-              {weatherData.city && (
-                <MdClose onClick={() => setSearching(false)} />
-              )}
-            </div>
-          ) : (
-            <div className="Home__top-bar-search">
-              <MdSearch onClick={() => setSearching(true)} />
-            </div>
-          )}
-        </div>
-
+            {searching ? (
+              <div className="Home__top-bar-cancel">
+                {weatherData.id && (
+                  <MdClose onClick={() => setSearching(false)} />
+                )}
+              </div>
+            ) : (
+              <div className="Home__top-bar-search">
+                <MdSearch onClick={() => setSearching(true)} />
+              </div>
+            )}
+          </div>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen>
+        {weatherData.id && !searching && (
+          <IonRefresher slot="fixed" onIonRefresh={doRefresh}></IonRefresher>
+        )}
         {searching && (
           <Search
             setCurrentCity={handleSetCurrent}
             setSearching={setSearching}
           />
         )}
-
-        {!searching && weatherData && (
+        {!searching && weatherData.id && (
           <div>
             <Current weatherData={weatherData} />
             <Divisor width={80} borderWidth={2} />
+            <Current weatherData={weatherData} />
+            <Current weatherData={weatherData} />
           </div>
         )}
-
         <IonLoading isOpen={showLoading} message={"Cargando..."} />
       </IonContent>
     </IonPage>
