@@ -9,7 +9,7 @@ import {
   FiCompass,
 } from "react-icons/fi";
 import { WiHumidity } from "react-icons/wi";
-import { FaSun } from "react-icons/fa";
+import { FaSun, FaCloudRain, FaMoon, FaCloud } from "react-icons/fa";
 import Weather from "../shared/models/Weather";
 import "./Current.css";
 import Divisor from "../shared/components/Divisor";
@@ -23,7 +23,15 @@ const Current: React.FC<ContainerProps> = (props) => {
     <div className="Current fade-in">
       <div className="Current__temperature">
         <div className="Current__icon-div">
-          <FaSun className="Current__icon" />
+          {props.weatherData.current?.sky === "rain" ? (
+            <FaCloudRain className="Current__icon" />
+          ) : props.weatherData.current?.sky === "cloud" ? (
+            <FaCloud className="Current__icon" />
+          ) : new Date().getHours() <= 7 || new Date().getHours() >= 21 ? (
+            <FaMoon className="Current__icon" />
+          ) : (
+            <FaSun className="Current__icon" />
+          )}
         </div>
 
         <div className="Current__temperature-max">

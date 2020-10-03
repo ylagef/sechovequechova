@@ -142,6 +142,17 @@ function getAvg(day: any, param: string, param2: string): any {
     return total / amount;
 };
 
+function parseSky(sky: string): string {
+    console.warn(sky);
+    if (sky.toLowerCase().includes('lluvia')) {
+        return 'rain';
+    } else if (sky.toLowerCase().includes('nuboso') || sky.toLowerCase().includes('cubierto')) {
+        return 'cloud';
+    } else {
+        return 'clear';
+    }
+}
+
 export async function getWeatherData(id: any, setWeatherData: any): Promise<any> {
     const [daily, hourly] = await Promise.all([getDaily(id), getHourly(id)]);
 
@@ -160,7 +171,7 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
         feelsLike: +getDataByDate(hourly, currentDate, 'sensTermica', currentPeriod).value,
         min: getMinValue(hourly, currentDate, 'temperatura'),
         max: getMaxValue(hourly, currentDate, 'temperatura'),
-        sky: getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion,
+        sky: parseSky(getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion),
         rain: +getDataByDate(hourly, currentDate, 'precipitacion', currentPeriod).value,
         humidity: +getDataByDate(hourly, currentDate, 'humedadRelativa', currentPeriod).value,
         windSpeed: +getDataByDate(hourly, currentDate, 'vientoAndRachaMax', currentPeriod).velocidad[0],
