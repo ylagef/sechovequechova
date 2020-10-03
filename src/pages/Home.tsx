@@ -33,7 +33,10 @@ const Home: React.FC = () => {
 
   const handleSetCurrent = async (id: string) => {
     setShowLoading(true);
-    localStorage.setItem("city_id", id);
+    await Storage.set({
+      key: "city_id",
+      value: id,
+    });
 
     await getApiWeatherData(id, setWeatherData);
 
@@ -65,14 +68,27 @@ const Home: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    handleInitialTheme();
+  const handleInitialCity = async () => {
+    const cityId = (
+      await Storage.get({
+        key: "city_id",
+      })
+    ).value;
 
-    if (localStorage.getItem("city_id")) {
-      getApiWeatherData(localStorage.getItem("city_id"), setWeatherData);
+    if (cityId) {
+      await getApiWeatherData(cityId, setWeatherData);
+      setShowLoading(false);
     } else {
       setSearching(true);
+      setShowLoading(false);
     }
+  };
+
+  useEffect(() => {
+    setShowLoading(true);
+
+    handleInitialTheme();
+    handleInitialCity();
   }, []);
 
   const handleTheme = async () => {
@@ -89,8 +105,14 @@ const Home: React.FC = () => {
         <div className="Home__top-bar">
           {weatherData && (
             <div className="Home__top-bar-city">
-              <MdLocationOn />
-              <div className="Home__top-bar-city-name">{weatherData.city}</div>
+              {weatherData.city && (
+                <div className="Home__top-bar-city-inner">
+                  <MdLocationOn />
+                  <div className="Home__top-bar-city-name">
+                    {weatherData.city}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -102,7 +124,9 @@ const Home: React.FC = () => {
 
           {searching ? (
             <div className="Home__top-bar-cancel">
-              <MdClose onClick={() => setSearching(false)} />
+              {weatherData.city && (
+                <MdClose onClick={() => setSearching(false)} />
+              )}
             </div>
           ) : (
             <div className="Home__top-bar-search">

@@ -3,83 +3,84 @@ import AemetDaily from "../models/aemet-daily";
 import AemetHourly from "../models/aemet-hourly";
 import dailyMock from "../static/daily-mock";
 import hourlyMock from "../static/hourly-mock";
+import axios from 'axios';
+import { Plugins } from "@capacitor/core";
+const { Storage } = Plugins;
 
-const headers = {
-    accept: "application/json",
-    api_key:
-        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0",
+const apiKey = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0";
+
+async function getHourly(id: string): Promise<any> {
+    const url = (await Storage.get({
+        key: `hourly_${id}`,
+    })).value;
+
+    if (url) {
+        console.log('url from cache', url);
+        return getHourlyData(url);
+    } else {
+        return axios({
+            url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${id}?api_key=${apiKey}`,
+            method: 'get'
+        }).then(async response => {
+            // console.log(response);
+            console.log('save url on cache', response.data.datos);
+            await Storage.set({
+                key: `hourly_${id}`,
+                value: response.data.datos
+            });
+            console.log('url!', response.data.datos);
+            return getHourlyData(response.data.datos);
+        });
+    }
 };
 
-function getHourlyData(id: string): Promise<any> {
-    return fetch(
-        `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${id}`,
-        {
-            headers,
-        }
-    )
-        .then((res) => res.json())
-        .then(
-            (result) => {
-                if (result.estado === 200) {
-                    return fetch(result.datos, {
-                        headers,
-                    })
-                        .then((res) => res.json())
-                        .then(
-                            (data: AemetHourly[]) => {
-                                console.log("hourly", data[0]);
-                                return data[0] as AemetHourly;
-                            },
-                            (error) => {
-                                console.error(error);
-                            }
-                        );
-                } else {
-                    console.error(result.descripcion);
-                }
-            },
-            (error) => {
-                console.error("err!", error);
-            }
-        );
+function getHourlyData(url: string) {
+    return axios({
+        url: `${url}`,
+        method: 'get'
+    }).then(response => {
+        // console.log(response);
+        return response.data[0] as AemetHourly;
+    });
+}
+
+async function getDaily(id: string): Promise<any> {
+    const url = (await Storage.get({
+        key: `daily_${id}`,
+    })).value;
+
+    if (url) {
+        console.log('url from cache', url);
+        return getDailyData(url);
+    } else {
+        return axios({
+            url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${id}?api_key=${apiKey}`,
+            method: 'get'
+        }).then(async response => {
+            // console.log(response);
+            console.log('save url on cache', response.data.datos);
+            await Storage.set({
+                key: `daily_${id}`,
+                value: response.data.datos
+            });
+            console.log('url!', response.data.datos);
+            return getDailyData(response.data.datos);
+        });
+    }
 };
 
-function getDailyData(id: string): Promise<any> {
-    return fetch(
-        `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${id}`,
-        {
-            headers,
-        }
-    )
-        .then((res) => res.json())
-        .then(
-            (result) => {
-                if (result.estado === 200) {
-                    return fetch(result.datos, {
-                        headers,
-                    })
-                        .then((res) => res.json())
-                        .then(
-                            (data: AemetDaily[]) => {
-                                console.log("daily", data[0]);
-                                return data[0] as AemetDaily;
-                            },
-                            (error) => {
-                                console.error(error);
-                            }
-                        );
-                } else {
-                    console.error(result.descripcion);
-                }
-            },
-            (error) => {
-                console.error("err!", error);
-            }
-        );
-};
+function getDailyData(url: string) {
+    return axios({
+        url: `${url}`,
+        method: 'get'
+    }).then(response => {
+        // console.log(response);
+        return response.data[0] as AemetDaily;
+    });
+}
 
 function getDataByDate(data: any, date: string, param: string, periodo?: string): any {
-    console.log(data, date, param, periodo);
+    // console.log(data, date, param, periodo);
     return periodo ? data.prediccion.dia
         .find((d: any) => d.fecha.includes(date))[param].find(
             (p: any) => +p.periodo === +periodo
@@ -128,8 +129,8 @@ function getAvg(day: any, param: string, param2: string): any {
 export async function getWeatherData(id: any, setWeatherData: any): Promise<any> {
     // const daily: AemetDaily = dailyMock[0];
     // const hourly: AemetHourly = hourlyMock[0];
-    const daily: AemetDaily = await getDailyData(id);
-    const hourly: AemetHourly = await getHourlyData(id);
+    const daily: AemetDaily = await getDaily(id);
+    const hourly: AemetHourly = await getHourly(id);
 
     console.log('d', daily);
     console.log('h', hourly);
@@ -168,7 +169,7 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
 
     weather.hourly = [];
     hourly.prediccion.dia.forEach((day) => {
-        // console.log(day);
+        // // console.log(day);
         // weather.daily?.push({
         //     min: day.temperatura.minima,
         //     max: day.temperatura.maxima,
@@ -178,6 +179,6 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
         // });
     });
 
-    console.log(weather);
+    // console.log(weather);
     return setWeatherData(weather);
 }
