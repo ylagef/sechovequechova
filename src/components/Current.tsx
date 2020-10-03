@@ -20,7 +20,7 @@ interface ContainerProps {
 
 const Current: React.FC<ContainerProps> = (props) => {
   return (
-    <div className="Current">
+    <div className="Current fade-in">
       <div className="Current__temperature">
         <div className="Current__icon-div">
           <FaSun className="Current__icon" />

@@ -168,8 +168,6 @@ const Home: React.FC = () => {
           <div>
             <Current weatherData={weatherData} />
             <Divisor width={80} borderWidth={2} />
-            <Current weatherData={weatherData} />
-            <Current weatherData={weatherData} />
           </div>
         )}
         <IonLoading isOpen={showLoading} message={"Cargando..."} />
