@@ -4,7 +4,7 @@ export default interface Current {
     min?: number;
     max?: number;
 
-    sky?: string;
+    sky?: { icon: string; text: string; };
 
     rain?: number;
 

@@ -1,0 +1,31 @@
+.Daily {
+  width: 80%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  margin: auto;
+
+  padding: 10px 0;
+}
+
+.Daily__title-h3 {
+  margin-top: 0;
+}
+
+.Daily__temp-div,
+.Daily__prec-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  padding: 5px 0;
+  overflow-x: scroll;
+}
+
+.Daily__section-header {
+  padding-bottom: 10px;
+}

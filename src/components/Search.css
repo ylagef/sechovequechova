@@ -3,6 +3,7 @@
   --border-color: var(--ion-text-color, #000);
   --color: var(--ion-text-color, #000);
   --highlight-background: transparent;
+  padding-bottom: 15px;
 }
 
 .Search__search-IonLabel {

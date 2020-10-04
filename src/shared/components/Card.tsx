@@ -7,7 +7,7 @@ interface ContainerProps {
 
 const Card: React.FC<ContainerProps> = (props) => {
   return (
-    <div className="Card">
+    <div className="Card fade-in">
       <div className="Card-inner">{props.children}</div>
     </div>
   );

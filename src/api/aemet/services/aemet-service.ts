@@ -3,6 +3,7 @@ import AemetDaily from "../models/aemet-daily";
 import AemetHourly from "../models/aemet-hourly";
 import axios from 'axios';
 import { Plugins } from "@capacitor/core";
+import Hourly from "../../../shared/models/Hourly";
 const { Storage } = Plugins;
 
 const apiKey = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5bGFnZWZAZ21haWwuY29tIiwianRpIjoiZWFlZWNmODMtZDA2NS00MGQ5LWEwNTktZjIyMjg5MDJjNjMzIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE2MDE2Mjk3MzEsInVzZXJJZCI6ImVhZWVjZjgzLWQwNjUtNDBkOS1hMDU5LWYyMjI4OTAyYzYzMyIsInJvbGUiOiIifQ.izyvn53NgERnzvtGXdv9JR6S_6sbgDOf1D68S6S6Vm0";
@@ -156,8 +157,8 @@ function parseSky(sky: string): string {
 export async function getWeatherData(id: any, setWeatherData: any): Promise<any> {
     const [daily, hourly] = await Promise.all([getDaily(id), getHourly(id)]);
 
-    console.log('d', daily);
-    console.log('h', hourly);
+    console.log('d', daily.prediccion);
+    console.log('h', hourly.prediccion);
 
     let weather: Weather = {};
     weather.id = id;
@@ -171,7 +172,7 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
         feelsLike: +getDataByDate(hourly, currentDate, 'sensTermica', currentPeriod).value,
         min: getMinValue(hourly, currentDate, 'temperatura'),
         max: getMaxValue(hourly, currentDate, 'temperatura'),
-        sky: parseSky(getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion),
+        sky: { icon: parseSky(getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion), text: getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion },
         rain: +getDataByDate(hourly, currentDate, 'precipitacion', currentPeriod).value,
         humidity: +getDataByDate(hourly, currentDate, 'humedadRelativa', currentPeriod).value,
         windSpeed: +getDataByDate(hourly, currentDate, 'vientoAndRachaMax', currentPeriod).velocidad[0],
@@ -182,28 +183,38 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
 
     weather.updated = new Date(daily.elaborado);
 
-    weather.daily = [];
-    daily.prediccion.dia.forEach((day: any) => {
-        weather.daily?.push({
-            min: day.temperatura.minima,
-            max: day.temperatura.maxima,
-            rain: getAvg(day, 'probPrecipitacion', 'value'),
-            humidity: (day.humedadRelativa.minima + day.humedadRelativa.maxima) / 2,
-            windSpeed: getAvg(day, 'viento', 'velocidad'),
-        });
-    });
+    let dailyAux: { [key: string]: any } = {};
+    [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+        const formatedDay = daily.prediccion.dia[i].fecha.split('-')[2].split('T')[0] + '/' + daily.prediccion.dia[i].fecha.split('-')[1];
 
-    weather.hourly = [];
-    // hourly.prediccion.dia.forEach((day: any) => {
-    // // console.log(day);
-    // weather.daily?.push({
-    //     min: day.temperatura.minima,
-    //     max: day.temperatura.maxima,
-    //     rain: getAvg(day, 'probPrecipitacion', 'value'),
-    //     humidity: (day.humedadRelativa.minima + day.humedadRelativa.maxima) / 2,
-    //     windSpeed: getAvg(day, 'viento', 'velocidad'),
-    // });
-    // });
+        [
+            ['temperatura', 'max', 'maxima', 'value'],
+            ['temperatura', 'min', 'minima', 'value'],
+            ['probPrecipitacion', 'precipitationProb', 'value', 'avg']
+        ].forEach((param: string[]) => {
+            if (!dailyAux[formatedDay]) { dailyAux[formatedDay] = {} }
+            dailyAux[formatedDay][param[1]] = (param[3] && param[3] === 'value') ? +daily.prediccion.dia[i][param[0]][param[2]] : Math.round(getAvg(daily.prediccion.dia[i], param[0], param[2]));
+        });
+    })
+    weather.daily = dailyAux;
+
+    let hourlyAux: { [key: string]: any } = {};
+    [0, 1].forEach(i => {
+        [
+            ['temperatura', 'temperature', 'value'],
+            ['precipitacion', 'precipitation', 'value'],
+            ['probPrecipitacion', 'precipitationProb', 'value']
+        ].forEach((param: string[]) => {
+            hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
+                if ((i === 0 && +item.periodo >= new Date().getHours())
+                    || (i === 1 && +item.periodo < new Date().getHours())) {
+                    if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
+                    hourlyAux[item.periodo][param[1]] = +item[param[2]];
+                }
+            });
+        });
+    })
+    weather.hourly = hourlyAux;
 
     console.log(weather);
     return setWeatherData(weather);

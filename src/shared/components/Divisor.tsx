@@ -8,7 +8,7 @@ interface ContainerProps {
 
 const Divisor: React.FC<ContainerProps> = (props) => {
   return (
-    <div className="Divisor">
+    <div className="Divisor fade-in">
       <div
         className="Divisor__inner"
         style={{

@@ -13,5 +13,5 @@
   justify-content: center;
   flex-wrap: wrap;
 
-  background-color: var(--ion-color-step-100);
+  background-color: rgba(var(--ion-text-color-rgb), 0.05);
 }

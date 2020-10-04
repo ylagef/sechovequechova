@@ -22,6 +22,11 @@ import Divisor from "../shared/components/Divisor";
 import { RefresherEventDetail } from "@ionic/core";
 
 import { Plugins } from "@capacitor/core";
+import Hourly from "../components/Hourly";
+import Daily from "../components/Daily";
+import Chart from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+
 const { Storage } = Plugins;
 
 const Home: React.FC = () => {
@@ -154,22 +159,34 @@ const Home: React.FC = () => {
           </div>
         </IonToolbar>
       </IonHeader>
+
       <IonContent fullscreen>
-        {weatherData.id && !searching && (
-          <IonRefresher slot="fixed" onIonRefresh={doRefresh}></IonRefresher>
-        )}
-        {searching && (
+        {searching ? (
           <Search
             setCurrentCity={handleSetCurrent}
             setSearching={setSearching}
           />
+        ) : (
+          weatherData.id && (
+            <div>
+              <IonRefresher
+                slot="fixed"
+                onIonRefresh={doRefresh}
+              ></IonRefresher>
+
+              <Current weatherData={weatherData} />
+
+              <Divisor width={80} borderWidth={2} />
+
+              <Hourly weatherData={weatherData} />
+
+              <Divisor width={80} borderWidth={2} />
+
+              <Daily weatherData={weatherData} />
+            </div>
+          )
         )}
-        {!searching && weatherData.id && (
-          <div>
-            <Current weatherData={weatherData} />
-            <Divisor width={80} borderWidth={2} />
-          </div>
-        )}
+
         <IonLoading isOpen={showLoading} message={"Cargando..."} />
       </IonContent>
     </IonPage>

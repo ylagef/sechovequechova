@@ -1,12 +1,14 @@
 {
-  "appId": "io.ionic.starter",
-  "appName": "sechovequechova",
+  "appId": "com.ylagef.sechovequechova",
+  "appName": "Se chove que chova",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "build",
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 0
+      "launchShowDuration": 0,
+      "launchAutoHide": false,
+      "androidScaleType": "CENTER_CROP"
     }
   },
   "cordova": {}

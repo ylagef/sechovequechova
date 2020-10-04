@@ -19,15 +19,19 @@ interface ContainerProps {
 }
 
 const Current: React.FC<ContainerProps> = (props) => {
+  const sunriseHour = +(props.weatherData.current?.sunrise?.split(":")[0] || 7);
+  const sunsetHour = +(props.weatherData.current?.sunset?.split(":")[0] || 21);
+
   return (
     <div className="Current fade-in">
       <div className="Current__temperature">
-        <div className="Current__icon-div">
-          {props.weatherData.current?.sky === "rain" ? (
+        <div className="Current__sky-icon">
+          {props.weatherData.current?.sky?.icon === "rain" ? (
             <FaCloudRain className="Current__icon" />
-          ) : props.weatherData.current?.sky === "cloud" ? (
+          ) : props.weatherData.current?.sky?.icon === "cloud" ? (
             <FaCloud className="Current__icon" />
-          ) : new Date().getHours() <= 7 || new Date().getHours() >= 21 ? (
+          ) : new Date().getHours() <= sunriseHour ||
+            new Date().getHours() >= sunsetHour ? (
             <FaMoon className="Current__icon" />
           ) : (
             <FaSun className="Current__icon" />
@@ -42,6 +46,7 @@ const Current: React.FC<ContainerProps> = (props) => {
             decimals={0}
             preserveValue={true}
             suffix="º"
+            className="Current__temperature-value"
           />
         </div>
 
@@ -52,6 +57,7 @@ const Current: React.FC<ContainerProps> = (props) => {
             decimals={0}
             preserveValue={true}
             suffix="º"
+            className="Current__temperature-value"
           />
         </div>
 
@@ -63,6 +69,7 @@ const Current: React.FC<ContainerProps> = (props) => {
             decimals={0}
             preserveValue={true}
             suffix="º"
+            className="Current__temperature-value"
           />
         </div>
       </div>
@@ -75,8 +82,15 @@ const Current: React.FC<ContainerProps> = (props) => {
           preserveValue={true}
           suffix="º"
           prefix="Sensación de "
+          className="Current__temperature-value"
         />
       </div>
+
+      {props.weatherData.current?.sky?.text && (
+        <div className="Current__sky-text">
+          {props.weatherData.current?.sky?.text}
+        </div>
+      )}
 
       <Divisor width={70} />
 
@@ -86,7 +100,7 @@ const Current: React.FC<ContainerProps> = (props) => {
           <CountUp
             end={props.weatherData.current?.rain || 0}
             duration={1}
-            decimals={0}
+            decimals={1}
             preserveValue={true}
             suffix="mm"
           />

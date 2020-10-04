@@ -7,9 +7,9 @@ export default interface Weather {
 
     city?: string;
 
-    daily?: Daily[];
+    daily?: { [key: string]: Daily };
 
-    hourly?: Hourly[];
+    hourly?: { [key: string]: Hourly };
 
     current?: Current;
 
