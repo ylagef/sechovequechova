@@ -15,6 +15,10 @@
   margin-top: 0;
 }
 
+.Hourly__segment {
+  width: 80%;
+}
+
 .Hourly__temp-div,
 .Hourly__prec-div {
   display: flex;

@@ -24,8 +24,6 @@ import { RefresherEventDetail } from "@ionic/core";
 import { Plugins } from "@capacitor/core";
 import Hourly from "../components/Hourly";
 import Daily from "../components/Daily";
-import Chart from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
 
 const { Storage } = Plugins;
 
@@ -49,6 +47,7 @@ const Home: React.FC = () => {
     setShowLoading(true);
     await getApiWeatherData(weatherData.id, setWeatherData);
     event.detail.complete();
+    window.scrollTo(0, 0);
     setShowLoading(false);
   };
 
@@ -183,6 +182,13 @@ const Home: React.FC = () => {
               <Divisor width={80} borderWidth={2} />
 
               <Daily weatherData={weatherData} />
+
+              <div className="Home__powered">
+                Powered by{" "}
+                <a className="Home__powered-link" href="https://www.aemet.es">
+                  Aemet
+                </a>
+              </div>
             </div>
           )
         )}

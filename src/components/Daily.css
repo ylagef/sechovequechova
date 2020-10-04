@@ -15,6 +15,10 @@
   margin-top: 0;
 }
 
+.Daily__segment {
+  width: 80%;
+}
+
 .Daily__temp-div,
 .Daily__prec-div {
   display: flex;

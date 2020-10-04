@@ -1,15 +1,20 @@
-import React from "react";
+import React, { SetStateAction, useState } from "react";
 import Weather from "../shared/models/Weather";
 import "./Hourly.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import ChartComponent from "react-chartjs-2";
+import ChartComponent, { Line } from "react-chartjs-2";
 import Divisor from "../shared/components/Divisor";
+import { IonSegment, IonSegmentButton, IonLabel } from "@ionic/react";
 
 interface ContainerProps {
   weatherData: Weather;
 }
 
 const Hourly: React.FC<ContainerProps> = (props) => {
+  const [section, setSection]: [string, SetStateAction<any>] = useState(
+    "temperature"
+  );
+
   const hours = props.weatherData.hourly
     ? [
         ...Object.keys(props.weatherData.hourly)
@@ -18,7 +23,7 @@ const Hourly: React.FC<ContainerProps> = (props) => {
         ...Object.keys(props.weatherData.hourly)
           .sort()
           .filter((h) => h.length === 2 && +h < new Date().getHours()),
-      ].slice(0, 8)
+      ].slice(0, 9)
     : [];
 
   const precipitations: number[] = [];
@@ -34,28 +39,25 @@ const Hourly: React.FC<ContainerProps> = (props) => {
   const tempData = {
     plugins: [ChartDataLabels],
 
-    labels: hours.map((h) => h + "h"),
+    labels: ["", ...hours.map((h) => h + "h"), ""],
     datasets: [
       {
-        fill: false,
-        backgroundColor: "rgba(255,99,132,0.5)",
+        backgroundColor: "rgba(255,99,132,0.1)",
         borderColor: "rgba(255,99,132,1)",
         borderWidth: 1,
-        data: temperatures,
+        data: [null, ...temperatures, null],
       },
     ],
   };
 
   const precData = {
-    plugins: [ChartDataLabels],
-
-    labels: hours.map((h) => h + "h"),
+    labels: ["", ...hours.map((h) => h + "h"), ""],
     datasets: [
       {
-        backgroundColor: "rgba(75,192,192,0.6)",
+        backgroundColor: "rgba(75,192,192,0.1)",
         borderColor: "rgba(75,192,192,1)",
         borderWidth: 1,
-        data: precipitations,
+        data: [null, ...precipitations, null],
       },
     ],
   };
@@ -101,7 +103,10 @@ const Hourly: React.FC<ContainerProps> = (props) => {
           display: false,
           ticks: {
             min: 0,
-            max: 1,
+            max:
+              Math.max.apply(Math, precipitations) < 0.8
+                ? Math.max.apply(Math, precipitations) + 0.2
+                : 1,
           },
         },
       ],
@@ -129,30 +134,33 @@ const Hourly: React.FC<ContainerProps> = (props) => {
         <h3 className="Hourly__title-h3">Predicción por horas</h3>
       </div>
 
-      <div className="Hourly__temp-div">
-        <h5 className="Hourly__section-header">Temperatura</h5>
+      <IonSegment
+        onIonChange={(e) => setSection(e.detail.value)}
+        mode="ios"
+        value={section}
+        className="Hourly__segment"
+      >
+        <IonSegmentButton value="temperature">
+          <IonLabel>Temperatura</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="precipitations">
+          <IonLabel>Precipitaciones</IonLabel>
+        </IonSegmentButton>
+      </IonSegment>
 
-        <ChartComponent
-          type="line"
-          data={tempData}
-          width={500}
-          options={tempOptions}
-        />
-      </div>
+      {section === "temperature" ? (
+        <div className="Hourly__temp-div">
+          <h5 className="Hourly__section-header">Temperatura</h5>
 
-      <Divisor />
+          <Line data={tempData} options={tempOptions} />
+        </div>
+      ) : (
+        <div className="Hourly__prec-div">
+          <h5 className="Hourly__section-header">Precipitaciones</h5>
 
-      <div className="Hourly__prec-div">
-        <h5 className="Hourly__section-header">Precipitaciones</h5>
-
-        <ChartComponent
-          type="bar"
-          data={precData}
-          width={500}
-          height={50}
-          options={precOptions}
-        />
-      </div>
+          <Line data={precData} options={precOptions} />
+        </div>
+      )}
     </div>
   );
 };
