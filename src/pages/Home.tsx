@@ -53,7 +53,8 @@ const Home: React.FC = () => {
     "aemet"
   );
 
-  const handleDataSource = (e: any) => {
+  const handleDataSource = async (e: any) => {
+    await Storage.remove({ key: "city" });
     setDataSource(e.detail.value);
     setSearching(true);
     setWeatherData({});
