@@ -199,15 +199,17 @@ export async function getWeatherData(id: any, setWeatherData: any): Promise<any>
     weather.daily = dailyAux;
 
     let hourlyAux: { [key: string]: any } = {};
-    [0, 1].forEach(i => {
+    const indexToday = hourly.prediccion.dia.findIndex((d: any) => new Date(d.fecha).getDate() === new Date().getDate());
+    console.warn('today', indexToday);
+    [indexToday, indexToday + 1].forEach(i => {
         [
             ['temperatura', 'temperature', 'value'],
             ['precipitacion', 'precipitation', 'value'],
             ['probPrecipitacion', 'precipitationProb', 'value']
         ].forEach((param: string[]) => {
             hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
-                if ((i === 0 && +item.periodo >= new Date().getHours())
-                    || (i === 1 && +item.periodo < new Date().getHours())) {
+                if ((i === indexToday && +item.periodo >= new Date().getHours())
+                    || (i === (indexToday + 1) && +item.periodo < new Date().getHours())) {
                     if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
                     hourlyAux[item.periodo][param[1]] = +item[param[2]];
                 }

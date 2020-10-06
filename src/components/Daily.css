@@ -31,5 +31,19 @@
 }
 
 .Daily__section-header {
-  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  margin: 0;
+  padding: 5px 0 15px 0;
+}
+
+.Daily__section-header-label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.5;
+  margin-top: 5px;
 }

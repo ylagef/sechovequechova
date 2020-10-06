@@ -15,6 +15,9 @@ const Hourly: React.FC<ContainerProps> = (props) => {
     "temperature"
   );
 
+  console.log(new Date().getHours());
+  console.log(Object.keys(props.weatherData.hourly || []).sort());
+
   const hours = props.weatherData.hourly
     ? [
         ...Object.keys(props.weatherData.hourly)
@@ -71,8 +74,8 @@ const Hourly: React.FC<ContainerProps> = (props) => {
           type: "linear",
           display: false,
           ticks: {
-            min: Math.min.apply(Math, temperatures) - 5,
-            max: Math.max.apply(Math, temperatures) + 5,
+            min: Math.min.apply(Math, temperatures) - 2,
+            max: Math.max.apply(Math, temperatures) + 2,
           },
         },
       ],
@@ -121,7 +124,7 @@ const Hourly: React.FC<ContainerProps> = (props) => {
         font: {
           weight: "bold",
         },
-        formatter: (value: string, _: any) => value + "mm",
+        formatter: (value: string, _: any) => value,
         display: (context: any) => context.dataset.data[context.dataIndex] > 0,
       },
     },
@@ -150,13 +153,19 @@ const Hourly: React.FC<ContainerProps> = (props) => {
 
       {section === "temperature" ? (
         <div className="Hourly__temp-div">
-          <h5 className="Hourly__section-header">Temperatura</h5>
+          <h5 className="Hourly__section-header">
+            Temperatura
+            <label className="Hourly__section-header-label">(ºC)</label>
+          </h5>
 
           <Line data={tempData} options={tempOptions} />
         </div>
       ) : (
         <div className="Hourly__prec-div">
-          <h5 className="Hourly__section-header">Precipitaciones</h5>
+          <h5 className="Hourly__section-header">
+            Precipitaciones
+            <label className="Hourly__section-header-label">(mm)</label>
+          </h5>
 
           <Line data={precData} options={precOptions} />
         </div>

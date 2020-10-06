@@ -163,7 +163,10 @@ const Daily: React.FC<ContainerProps> = (props) => {
 
       {section === "temperature" ? (
         <div className="Daily__temp-div">
-          <h5 className="Daily__section-header">Temperaturas</h5>
+          <h5 className="Daily__section-header">
+            Temperaturas
+            <label className="Daily__section-header-label">(ºC)</label>
+          </h5>
 
           <Line data={tempData} options={tempOptions} />
         </div>
@@ -171,6 +174,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
         <div className="Daily__prec-div">
           <h5 className="Daily__section-header">
             Probabilidad de precipitaciones
+            <label className="Daily__section-header-label">(%)</label>
           </h5>
 
           <Line data={precData} options={precOptions} />
