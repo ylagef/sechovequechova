@@ -22,14 +22,12 @@ async function getHourly(id: string): Promise<any> {
             url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${id}?api_key=${apiKey}`,
             method: 'get'
         }).then(async response => {
-            // console.log(response);
             if (response.data.estado === 200) {
                 console.log('save url on cache', response.data.datos);
                 await Storage.set({
                     key: `hourly_${id}`,
                     value: response.data.datos
                 });
-                console.log('url!', response.data.datos);
                 return getHourlyData(response.data.datos, id);
             } else {
                 await Storage.remove({
@@ -51,7 +49,6 @@ function getHourlyData(url: string, id: string) {
     }).then(async response => {
         if (response.data.estado === 404) {
             // Error on query
-            console.warn(response.data.descripcion);
             await Storage.remove({
                 key: `hourly_${id}`,
             });
@@ -79,14 +76,12 @@ async function getDaily(id: string): Promise<any> {
             url: `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${id}?api_key=${apiKey}`,
             method: 'get'
         }).then(async response => {
-            // console.log(response);
             if (response.data.estado === 200) {
                 console.log('save url on cache', response.data.datos);
                 await Storage.set({
                     key: `daily_${id}`,
                     value: response.data.datos
                 });
-                console.log('url!', response.data.datos);
                 return getDailyData(response.data.datos, id);
             } else {
                 await Storage.remove({
@@ -108,7 +103,6 @@ function getDailyData(url: string, id: string) {
     }).then(async response => {
         if (response.data.estado === 404) {
             // Error on query
-            console.warn(response.data.descripcion);
             await Storage.remove({
                 key: `daily_${id}`,
             });
@@ -124,7 +118,6 @@ function getDailyData(url: string, id: string) {
 }
 
 function getDataByDate(data: any, date: string, param: string, periodo?: string): any {
-    // console.log(data, date, param, periodo);
     return periodo ? data.prediccion.dia
         .find((d: any) => d.fecha.includes(date))[param].find(
             (p: any) => +p.periodo === +periodo
@@ -171,7 +164,6 @@ function getAvg(day: any, param: string, param2: string): any {
 };
 
 function parseSky(sky: string): string {
-    console.warn(sky);
     if (sky.toLowerCase().includes('lluvia')) {
         return 'rain';
     } else if (sky.toLowerCase().includes('nuboso') || sky.toLowerCase().includes('cubierto')) {
@@ -184,12 +176,7 @@ function parseSky(sky: string): string {
 export async function aemetGetWeatherData(city: any, setWeatherData: any, handleError: any): Promise<any> {
     const [daily, hourly] = await Promise.all([getDaily(city.id), getHourly(city.id)]);
 
-    console.log('d', daily);
-    console.log('h', hourly);
     if (daily && hourly) {
-        console.log('dp', daily.prediccion);
-        console.log('hp', hourly.prediccion);
-
         let weather: Weather = {};
         weather.city = city;
 
@@ -236,7 +223,6 @@ export async function aemetGetWeatherData(city: any, setWeatherData: any, handle
                 ['probPrecipitacion', 'pop', 'value']
             ].forEach((param: string[]) => {
                 hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
-                    console.log(Object.keys(hourlyAux).length);
                     if ((item.periodo.length === 2) && Object.keys(hourlyAux).length < 10
                         && ((i === indexToday && +item.periodo >= new Date().getHours())
                             || (i === (indexToday + 1) && +item.periodo < new Date().getHours()))) {

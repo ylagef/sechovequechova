@@ -1,104 +1,72 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import React, { SetStateAction, useState } from "react";
 import "./Header.css";
-import { IonHeader, IonToolbar } from "@ionic/react";
-import { IoMdSunny, IoMdMoon } from "react-icons/io";
+import { IonHeader, IonModal, IonToolbar } from "@ionic/react";
+import { IoMdSettings } from "react-icons/io";
 import { MdLocationOn, MdClose, MdSearch } from "react-icons/md";
 import { Plugins } from "@capacitor/core";
 import Weather from "../shared/models/Weather";
-const { Storage } = Plugins;
+import Settings from "./Settings";
 
 interface ContainerProps {
   weatherData: Weather;
   searching: boolean;
   setSearching: any;
+  dataSource: string;
+  handleDataSource: any;
+  theme: string;
+  setTheme: any;
 }
 
 const Header: React.FC<ContainerProps> = (props) => {
-  const [theme, setTheme]: [string, SetStateAction<any>] = useState("dark");
-
-  const saveTheme = async (theme: string) => {
-    setTheme(theme);
-
-    await Storage.set({
-      key: "theme",
-      value: theme,
-    });
-  };
-
-  const getSavedTheme = () => {
-    return Storage.get({
-      key: "theme",
-    });
-  };
-
-  const handleInitialTheme = async () => {
-    const theme = (await getSavedTheme()).value;
-    document.body.classList.toggle("dark", theme ? theme === "dark" : true);
-    saveTheme(theme || "dark");
-  };
-
-  const handleTheme = async (initial?: boolean) => {
-    const savedTheme = (await getSavedTheme()).value;
-
-    const newTheme = !initial
-      ? savedTheme === "dark"
-        ? "light"
-        : "dark"
-      : savedTheme;
-
-    document.body.classList.toggle(
-      "dark",
-      savedTheme ? savedTheme === "dark" : true
-    );
-    saveTheme(newTheme || "dark");
-  };
-
-  useEffect(() => {
-    handleTheme(true);
-  }, []);
+  const [showSettings, setShowSettings]: [
+    boolean,
+    SetStateAction<any>
+  ] = useState(false);
 
   return (
     <div className="Header">
       <IonHeader>
         <IonToolbar>
-          <div className="Home__top-bar">
-            <div className="Home__top-bar-city">
+          <div className="Header__top-bar">
+            <div className="Header__top-bar-city">
               {props.weatherData.city && (
-                <div className="Home__top-bar-city-inner">
+                <div className="Header__top-bar-city-inner">
                   <MdLocationOn />
-                  <div className="Home__top-bar-city-name">
+                  <div className="Header__top-bar-city-name">
                     {props.weatherData.city.name}
                   </div>
                 </div>
               )}
             </div>
 
-            {theme === "light" ? (
-              <IoMdSunny
-                className="Home__top-bar-theme"
-                onClick={() => handleTheme()}
-              />
-            ) : (
-              <IoMdMoon
-                className="Home__top-bar-theme"
-                onClick={() => handleTheme()}
-              />
-            )}
+            <IoMdSettings
+              className="Header__top-bar-settings"
+              onClick={() => setShowSettings(true)}
+            />
 
             {props.searching ? (
-              <div className="Home__top-bar-cancel">
+              <div className="Header__top-bar-cancel">
                 {props.weatherData.city && (
                   <MdClose onClick={() => props.setSearching(false)} />
                 )}
               </div>
             ) : (
-              <div className="Home__top-bar-search">
+              <div className="Header__top-bar-search">
                 <MdSearch onClick={() => props.setSearching(true)} />
               </div>
             )}
           </div>
         </IonToolbar>
       </IonHeader>
+      <IonModal isOpen={showSettings}>
+        <Settings
+          setShowSettings={setShowSettings}
+          dataSource={props.dataSource}
+          handleDataSource={props.handleDataSource}
+          theme={props.theme}
+          setTheme={props.setTheme}
+        />
+      </IonModal>
     </div>
   );
 };

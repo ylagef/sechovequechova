@@ -23,10 +23,13 @@ import Header from "../components/Header";
 import { useEffect } from "react";
 import { owmGetWeatherData } from "../api/owm-service/services/owm-service";
 import City from "../shared/models/City";
+import { handleTheme } from "../shared/services/theming";
 
 const { Storage } = Plugins;
 
 const Home: React.FC = () => {
+  const [theme, setTheme]: [string, SetStateAction<any>] = useState("dark");
+
   const [showLoading, setShowLoading]: [
     boolean,
     SetStateAction<any>
@@ -46,17 +49,30 @@ const Home: React.FC = () => {
     SetStateAction<any>
   ] = useState({});
 
+  const [dataSource, setDataSource]: [string, SetStateAction<any>] = useState(
+    "aemet"
+  );
+
+  const handleDataSource = (e: any) => {
+    setDataSource(e.detail.value);
+    setSearching(true);
+    setWeatherData({});
+  };
+
   const handleError = (error: string) => {
     setError(error);
+    setWeatherData({});
     setShowToast(true);
     setSearching(true);
     setShowLoading(false);
   };
 
-  const doRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+  const doRefresh = async (event?: CustomEvent<RefresherEventDetail>) => {
     setShowLoading(true);
-    await owmGetWeatherData(weatherData.city, setWeatherData, handleError);
-    event.detail.complete();
+    dataSource === "aemet"
+      ? await aemetGetWeatherData(weatherData.city, setWeatherData, handleError)
+      : await owmGetWeatherData(weatherData.city, setWeatherData, handleError);
+    event?.detail.complete();
     window.scrollTo(0, 0);
     setShowLoading(false);
   };
@@ -68,7 +84,9 @@ const Home: React.FC = () => {
       value: JSON.stringify(city),
     });
 
-    await owmGetWeatherData(city, setWeatherData, handleError);
+    dataSource === "aemet"
+      ? await aemetGetWeatherData(city, setWeatherData, handleError)
+      : await owmGetWeatherData(city, setWeatherData, handleError);
 
     setShowLoading(false);
   };
@@ -83,7 +101,9 @@ const Home: React.FC = () => {
     const city = storageCity ? JSON.parse(storageCity) : null;
 
     if (city) {
-      await owmGetWeatherData(city, setWeatherData, handleError);
+      dataSource === "aemet"
+        ? await aemetGetWeatherData(city, setWeatherData, handleError)
+        : await owmGetWeatherData(city, setWeatherData, handleError);
       setShowLoading(false);
     } else {
       setSearching(true);
@@ -94,6 +114,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     setShowLoading(true);
     handleInitialCity();
+    handleTheme(true, setTheme);
   }, []);
 
   return (
@@ -102,6 +123,10 @@ const Home: React.FC = () => {
         weatherData={weatherData}
         searching={searching}
         setSearching={setSearching}
+        dataSource={dataSource}
+        handleDataSource={handleDataSource}
+        theme={theme}
+        setTheme={setTheme}
       />
 
       <IonContent fullscreen>
@@ -109,6 +134,7 @@ const Home: React.FC = () => {
           <Search
             setCurrentCity={handleSetCurrent}
             setSearching={setSearching}
+            dataSource={dataSource}
           />
         ) : (
           weatherData.city && (
@@ -130,9 +156,18 @@ const Home: React.FC = () => {
 
               <div className="Home__powered">
                 Powered by{" "}
-                <a className="Home__powered-link" href="https://www.aemet.es">
-                  Aemet
-                </a>
+                {dataSource === "aemet" ? (
+                  <a className="Home__powered-link" href="https://www.aemet.es">
+                    Aemet
+                  </a>
+                ) : (
+                  <a
+                    className="Home__powered-link"
+                    href="http://www.openweathermap.org"
+                  >
+                    Open weather
+                  </a>
+                )}
               </div>
             </div>
           )

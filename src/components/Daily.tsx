@@ -53,10 +53,6 @@ const Daily: React.FC<ContainerProps> = (props) => {
     ],
   };
 
-  console.warn({
-    min: Math.min(...min) - 5,
-  });
-
   const precData = {
     labels: ["", ...days, ""],
     datasets: [

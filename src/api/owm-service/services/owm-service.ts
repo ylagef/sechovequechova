@@ -67,7 +67,6 @@ function getAvg(day: any, param: string, param2: string): any {
 };
 
 function parseSky(sky: string): string {
-    console.warn(sky);
     if (sky.toLowerCase().includes('lluvia')) {
         return 'rain';
     } else if (sky.toLowerCase().includes('nuboso') || sky.toLowerCase().includes('cubierto')) {
@@ -92,13 +91,9 @@ function getFormattedDate(time: number) {
 export async function owmGetWeatherData(city: any, setWeatherData: any, handleError: any): Promise<any> {
     const data = await getData(city);
 
-    console.log('d', data);
     if (data) {
         let weather: Weather = {};
         weather.city = city;
-
-        //     weather.updated = new Date(daily.elaborado);
-
 
         weather.current = {
             temp: Math.round(data.current.temp),
