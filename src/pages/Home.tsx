@@ -1,21 +1,16 @@
 import {
   IonContent,
-  IonHeader,
   IonLoading,
   IonPage,
   IonRefresher,
-  IonToolbar,
+  IonToast,
 } from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
 import "./Home.css";
 
 import Search from "../components/Search";
-import { getWeatherData as getApiWeatherData } from "../api/aemet/services/aemet-service";
+import { aemetGetWeatherData } from "../api/aemet/services/aemet-service";
 import Weather from "../shared/models/Weather";
-import { useEffect } from "react";
-
-import { MdClose, MdLocationOn, MdSearch } from "react-icons/md";
-import { IoMdSunny, IoMdMoon } from "react-icons/io";
 
 import Current from "../components/Current";
 import Divisor from "../shared/components/Divisor";
@@ -24,79 +19,71 @@ import { RefresherEventDetail } from "@ionic/core";
 import { Plugins } from "@capacitor/core";
 import Hourly from "../components/Hourly";
 import Daily from "../components/Daily";
+import Header from "../components/Header";
+import { useEffect } from "react";
+import { owmGetWeatherData } from "../api/owm-service/services/owm-service";
+import City from "../shared/models/City";
 
 const { Storage } = Plugins;
 
 const Home: React.FC = () => {
-  const [theme, setTheme]: [string, SetStateAction<any>] = useState("");
   const [showLoading, setShowLoading]: [
     boolean,
     SetStateAction<any>
   ] = useState(false);
+  const [showToast, setShowToast]: [boolean, SetStateAction<any>] = useState(
+    false
+  );
 
   const [searching, setSearching]: [boolean, SetStateAction<any>] = useState(
     false
   );
+
+  const [error, setError]: [string, SetStateAction<any>] = useState("");
 
   const [weatherData, setWeatherData]: [
     Weather,
     SetStateAction<any>
   ] = useState({});
 
+  const handleError = (error: string) => {
+    setError(error);
+    setShowToast(true);
+    setSearching(true);
+    setShowLoading(false);
+  };
+
   const doRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     setShowLoading(true);
-    await getApiWeatherData(weatherData.id, setWeatherData);
+    await owmGetWeatherData(weatherData.id, setWeatherData, handleError);
     event.detail.complete();
     window.scrollTo(0, 0);
     setShowLoading(false);
   };
 
-  const handleSetCurrent = async (id: string) => {
+  const handleSetCurrent = async (city: City) => {
     setShowLoading(true);
     await Storage.set({
-      key: "city_id",
-      value: id,
+      key: "city",
+      value: JSON.stringify(city),
     });
 
-    await getApiWeatherData(id, setWeatherData);
+    await owmGetWeatherData(city, setWeatherData, handleError);
 
     setShowLoading(false);
   };
 
-  const saveTheme = async (theme: string) => {
-    await Storage.set({
-      key: "theme",
-      value: theme,
-    });
-  };
-
-  const getSavedTheme = () => {
-    return Storage.get({
-      key: "theme",
-    });
-  };
-
-  const handleInitialTheme = async () => {
-    const theme = (await getSavedTheme()).value;
-    if (!theme) {
-      document.body.classList.toggle("dark", true);
-      saveTheme("dark");
-      setTheme("dark");
-    } else {
-      document.body.classList.toggle("dark", theme === "dark");
-      setTheme(theme);
-    }
-  };
-
   const handleInitialCity = async () => {
-    const cityId = (
+    const storageCity = (
       await Storage.get({
-        key: "city_id",
+        key: "city",
       })
     ).value;
 
-    if (cityId) {
-      await getApiWeatherData(cityId, setWeatherData);
+    const city = storageCity ? JSON.parse(storageCity) : null;
+
+    if (city) {
+      await owmGetWeatherData(city, setWeatherData, handleError);
       setShowLoading(false);
     } else {
       setSearching(true);
@@ -106,58 +93,16 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     setShowLoading(true);
-
-    handleInitialTheme();
     handleInitialCity();
   }, []);
 
-  const handleTheme = async () => {
-    const currentTheme = (await getSavedTheme()).value;
-    const newTheme = currentTheme === "dark" ? "light" : "dark";
-    document.body.classList.toggle("dark", newTheme === "dark");
-    saveTheme(newTheme);
-    setTheme(newTheme);
-  };
-
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <div className="Home__top-bar">
-            <div className="Home__top-bar-city">
-              {weatherData.id && (
-                <div className="Home__top-bar-city-inner">
-                  <MdLocationOn />
-                  <div className="Home__top-bar-city-name">
-                    {weatherData.city}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {theme === "light" ? (
-              <IoMdSunny
-                className="Home__top-bar-theme"
-                onClick={handleTheme}
-              />
-            ) : (
-              <IoMdMoon className="Home__top-bar-theme" onClick={handleTheme} />
-            )}
-
-            {searching ? (
-              <div className="Home__top-bar-cancel">
-                {weatherData.id && (
-                  <MdClose onClick={() => setSearching(false)} />
-                )}
-              </div>
-            ) : (
-              <div className="Home__top-bar-search">
-                <MdSearch onClick={() => setSearching(true)} />
-              </div>
-            )}
-          </div>
-        </IonToolbar>
-      </IonHeader>
+      <Header
+        weatherData={weatherData}
+        searching={searching}
+        setSearching={setSearching}
+      />
 
       <IonContent fullscreen>
         {searching ? (
@@ -194,6 +139,13 @@ const Home: React.FC = () => {
         )}
 
         <IonLoading isOpen={showLoading} message={"Cargando..."} />
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message={error}
+          duration={2000}
+          color="danger"
+        />
       </IonContent>
     </IonPage>
   );

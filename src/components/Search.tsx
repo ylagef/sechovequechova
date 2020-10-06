@@ -1,7 +1,9 @@
 import { IonItem, IonLabel, IonInput } from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
-import townCodes from "../api/aemet/static/town-codes";
+import townCodes from "../api/aemet/static/aemet-town-codes";
+import owmTownData from "../api/owm-service/static/owm-town-data";
 import Card from "../shared/components/Card";
+import City from "../shared/models/City";
 import "./Search.css";
 
 interface ContainerProps {
@@ -16,14 +18,19 @@ const Search: React.FC<ContainerProps> = (props) => {
 
   const getFilteredCities = () => {
     return Object.values(
-      townCodes.filter((item) =>
-        item.nm.toLowerCase().includes(searchValue.toLowerCase())
-      )
+      owmTownData
+        .filter((item) =>
+          item.city.toLowerCase().includes(searchValue.toLowerCase())
+        )
+        .sort((a, b) => (a.city > b.city ? 1 : -1))
+        .map((c) => {
+          return { name: c.city, lat: +c.lat, lon: +c.lon } as City;
+        })
     );
   };
 
-  const selectCity = (id: string) => {
-    props.setCurrentCity(id);
+  const selectCity = (item: City) => {
+    props.setCurrentCity(item);
     props.setSearching(false);
   };
 
@@ -44,14 +51,14 @@ const Search: React.FC<ContainerProps> = (props) => {
         {searchValue.length > 2 &&
           (getFilteredCities().length > 0 ? (
             <Card>
-              {getFilteredCities().map((value, i) => (
+              {getFilteredCities().map((value: City, i) => (
                 <div
                   className="Search__cities-list-city-div fade-in"
                   key={i}
-                  onClick={() => selectCity(value.id)}
+                  onClick={() => selectCity(value)}
                 >
                   <div className="Search__cities-list-city-div-inner">
-                    <label>{value.nm}</label>
+                    <label>{value.name}</label>
                   </div>
                 </div>
               ))}

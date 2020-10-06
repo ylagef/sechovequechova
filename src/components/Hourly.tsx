@@ -1,9 +1,8 @@
-import React, { SetStateAction, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import Weather from "../shared/models/Weather";
 import "./Hourly.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import ChartComponent, { Line } from "react-chartjs-2";
-import Divisor from "../shared/components/Divisor";
+import { Line } from "react-chartjs-2";
 import { IonSegment, IonSegmentButton, IonLabel } from "@ionic/react";
 
 interface ContainerProps {
@@ -14,9 +13,6 @@ const Hourly: React.FC<ContainerProps> = (props) => {
   const [section, setSection]: [string, SetStateAction<any>] = useState(
     "temperature"
   );
-
-  console.log(new Date().getHours());
-  console.log(Object.keys(props.weatherData.hourly || []).sort());
 
   const hours = props.weatherData.hourly
     ? [
