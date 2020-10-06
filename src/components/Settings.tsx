@@ -17,7 +17,10 @@ interface ContainerProps {
 
 const Settings: React.FC<ContainerProps> = (props) => {
   return (
-    <div className="Settings">
+    <div
+      className="Settings"
+      style={{ color: props.theme === "dark" ? "white" : "black" }}
+    >
       <div className="Settings__top-div">
         <MdClose
           className="Settings__close-icon"

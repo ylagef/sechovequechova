@@ -3,7 +3,6 @@ import "./Header.css";
 import { IonHeader, IonModal, IonToolbar } from "@ionic/react";
 import { IoMdSettings } from "react-icons/io";
 import { MdLocationOn, MdClose, MdSearch } from "react-icons/md";
-import { Plugins } from "@capacitor/core";
 import Weather from "../shared/models/Weather";
 import Settings from "./Settings";
 
