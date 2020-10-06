@@ -20,9 +20,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
 
   const precipitationsProb: number[] = [];
   days.forEach((d) => {
-    precipitationsProb.push(
-      (props.weatherData.daily || {})[d].precipitationProb || 0
-    );
+    precipitationsProb.push((props.weatherData.daily || {})[d].pop || 0);
   });
 
   const min: number[] = [];
@@ -55,6 +53,10 @@ const Daily: React.FC<ContainerProps> = (props) => {
     ],
   };
 
+  console.warn({
+    min: Math.min(...min) - 5,
+  });
+
   const precData = {
     labels: ["", ...days, ""],
     datasets: [
@@ -77,8 +79,8 @@ const Daily: React.FC<ContainerProps> = (props) => {
           type: "linear",
           display: false,
           ticks: {
-            min: Math.min.apply(Math, min) - 5,
-            max: Math.max.apply(Math, max) + 5,
+            min: Math.min(...min) - 5,
+            max: Math.max(...max) + 5,
           },
         },
       ],
@@ -156,7 +158,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
         <IonSegmentButton value="temperature">
           <IonLabel>Temperatura</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value="precipitations">
+        <IonSegmentButton value="rains">
           <IonLabel>Precipitaciones</IonLabel>
         </IonSegmentButton>
       </IonSegment>

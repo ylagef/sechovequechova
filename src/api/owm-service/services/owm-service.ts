@@ -79,7 +79,14 @@ function parseSky(sky: string): string {
 
 function getFormattedTime(time: number) {
     const date = new Date(time * 1000);
-    return (date.getHours() > 9 ? date.getHours() : '0' + date.getHours()) + ':' + (date.getMinutes() > 9 ? date.getMinutes() : '0' + date.getMinutes());
+    return (date.getHours() > 9 ? date.getHours() : '0' + date.getHours())
+        + ':' + (date.getMinutes() > 9 ? date.getMinutes() : '0' + date.getMinutes());
+}
+
+function getFormattedDate(time: number) {
+    const date = new Date(time * 1000);
+    return (date.getDate() > 9 ? date.getDate() : '0' + date.getDate())
+        + '/' + ((date.getMonth() + 1) > 9 ? (date.getMonth() + 1) : '0' + (date.getMonth() + 1));
 }
 
 export async function owmGetWeatherData(city: any, setWeatherData: any, handleError: any): Promise<any> {
@@ -87,23 +94,19 @@ export async function owmGetWeatherData(city: any, setWeatherData: any, handleEr
 
     console.log('d', data);
     if (data) {
-        //     console.log('dp', daily.prediccion);
-        //     console.log('hp', hourly.prediccion);
-
         let weather: Weather = {};
-        //     weather.id = id;
         weather.city = city;
 
-        //     const date = new Date();
-        //     const currentDate = date.getFullYear() + '-' + ((date.getMonth() + 1) <= 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)) + '-' + (date.getDate() <= 9 ? '0' + date.getDate() : date.getDate());
-        //     const currentPeriod = (new Date().getHours() <= 9) ? '0' + new Date().getHours() : '' + new Date().getHours();
+        //     weather.updated = new Date(daily.elaborado);
+
+
         weather.current = {
-            temperature: data.current.temp,
-            feelsLike: data.current.feels_like,
-            min: (data.daily || [])[0].temp.min,
-            max: (data.daily || [])[0].temp.max,
+            temp: Math.round(data.current.temp),
+            feelsLike: Math.round(data.current.feels_like),
+            min: Math.round((data.daily || [])[0].temp.min),
+            max: Math.round((data.daily || [])[0].temp.max),
             sky: { icon: parseSky((data.current.weather || [])[0].description), text: (data.current.weather || [])[0].main },
-            rain: data.current.rain['1h'],
+            rain: data.current.rain ? data.current.rain['1h'] : 0,
             humidity: data.current.humidity,
             windSpeed: data.current.wind_speed,
             windDirection: data.current.wind_deg,
@@ -111,41 +114,31 @@ export async function owmGetWeatherData(city: any, setWeatherData: any, handleEr
             sunset: getFormattedTime((data.daily || [])[0].sunset)
         };
 
-        //     weather.updated = new Date(daily.elaborado);
 
         let dailyAux: { [key: string]: any } = {};
-        //     [0, 1, 2, 3, 4, 5, 6].forEach(i => {
-        //         const formatedDay = daily.prediccion.dia[i].fecha.split('-')[2].split('T')[0] + '/' + daily.prediccion.dia[i].fecha.split('-')[1];
-
-        //         [
-        //             ['temperatura', 'max', 'maxima', 'value'],
-        //             ['temperatura', 'min', 'minima', 'value'],
-        //             ['probPrecipitacion', 'precipitationProb', 'value', 'avg']
-        //         ].forEach((param: string[]) => {
-        //             if (!dailyAux[formatedDay]) { dailyAux[formatedDay] = {} }
-        //             dailyAux[formatedDay][param[1]] = (param[3] && param[3] === 'value') ? +daily.prediccion.dia[i][param[0]][param[2]] : Math.round(getAvg(daily.prediccion.dia[i], param[0], param[2]));
-        //         });
-        //     })
+        data.daily?.forEach((i: any) => {
+            [
+                ['min', 'temp', 'min'],
+                ['max', 'temp', 'max'],
+                ['pop', 'pop']
+            ].forEach((param: string[]) => {
+                if (!dailyAux[getFormattedDate(i.dt)]) { dailyAux[getFormattedDate(i.dt)] = {} }
+                dailyAux[getFormattedDate(i.dt)][param[0]] = Math.round((param[2])
+                    ? +i[param[1]][param[2]] : +i[param[1]] * 100);
+            });
+        })
         weather.daily = dailyAux;
 
         let hourlyAux: { [key: string]: any } = {};
-        //     const indexToday = hourly.prediccion.dia.findIndex((d: any) => new Date(d.fecha).getDate() === new Date().getDate());
-        //     console.warn('today', indexToday);
-        //     [indexToday, indexToday + 1].forEach(i => {
-        //         [
-        //             ['temperatura', 'temperature', 'value'],
-        //             ['precipitacion', 'precipitation', 'value'],
-        //             ['probPrecipitacion', 'precipitationProb', 'value']
-        //         ].forEach((param: string[]) => {
-        //             hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
-        //                 if ((i === indexToday && +item.periodo >= new Date().getHours())
-        //                     || (i === (indexToday + 1) && +item.periodo < new Date().getHours())) {
-        //                     if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
-        //                     hourlyAux[item.periodo][param[1]] = +item[param[2]];
-        //                 }
-        //             });
-        //         });
-        //     })
+
+        data.hourly?.forEach((h: any, index: number) => {
+            if (index < 10) {
+                const day = getFormattedTime(h.dt).split(':')[0];
+                hourlyAux[day] = {};
+                hourlyAux[day].temp = Math.round(+h.temp);
+                hourlyAux[day].pop = Math.round(+h.pop * 100);
+            }
+        });
         weather.hourly = hourlyAux;
 
         console.log(weather);

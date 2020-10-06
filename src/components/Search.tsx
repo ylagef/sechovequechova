@@ -17,6 +17,17 @@ const Search: React.FC<ContainerProps> = (props) => {
   );
 
   const getFilteredCities = () => {
+    // return Object.values(
+    //   townCodes
+    //     .filter((item) =>
+    //       item.nm.toLowerCase().includes(searchValue.toLowerCase())
+    //     )
+    //     .sort((a, b) => (a.nm > b.nm ? 1 : -1))
+    //     .map((c) => {
+    //       return { name: c.nm, id: +c.id } as City;
+    //     })
+    // );
+
     return Object.values(
       owmTownData
         .filter((item) =>

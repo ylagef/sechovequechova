@@ -18,21 +18,26 @@ const Hourly: React.FC<ContainerProps> = (props) => {
     ? [
         ...Object.keys(props.weatherData.hourly)
           .sort()
-          .filter((h) => h.length === 2 && +h >= new Date().getHours()),
+          .filter((h) => +h >= new Date().getHours()),
         ...Object.keys(props.weatherData.hourly)
           .sort()
-          .filter((h) => h.length === 2 && +h < new Date().getHours()),
-      ].slice(0, 9)
+          .filter((h) => +h < new Date().getHours()),
+      ]
     : [];
 
-  const precipitations: number[] = [];
+  const rains: number[] = [];
   hours.forEach((h) => {
-    precipitations.push((props.weatherData.hourly || {})[h].precipitation || 0);
+    rains.push((props.weatherData.hourly || {})[h].rain || 0);
   });
 
   const temperatures: number[] = [];
   hours.forEach((h) => {
-    temperatures.push((props.weatherData.hourly || {})[h].temperature || 0);
+    temperatures.push((props.weatherData.hourly || {})[h].temp || 0);
+  });
+
+  const pop: number[] = [];
+  hours.forEach((h) => {
+    pop.push((props.weatherData.hourly || {})[h].pop || 0);
   });
 
   const tempData = {
@@ -49,14 +54,26 @@ const Hourly: React.FC<ContainerProps> = (props) => {
     ],
   };
 
-  const precData = {
+  const rainData = {
     labels: ["", ...hours.map((h) => h + "h"), ""],
     datasets: [
       {
         backgroundColor: "rgba(75,192,192,0.1)",
         borderColor: "rgba(75,192,192,1)",
         borderWidth: 1,
-        data: [null, ...precipitations, null],
+        data: [null, ...rains, null],
+      },
+    ],
+  };
+
+  const popData = {
+    labels: ["", ...hours.map((h) => h + "h"), ""],
+    datasets: [
+      {
+        backgroundColor: "rgba(75,192,192,0.1)",
+        borderColor: "rgba(75,192,192,1)",
+        borderWidth: 1,
+        data: [null, ...pop, null],
       },
     ],
   };
@@ -92,7 +109,7 @@ const Hourly: React.FC<ContainerProps> = (props) => {
     legend: { display: false },
   };
 
-  const precOptions: any = {
+  const rainOptions: any = {
     maintainAspectRatio: false,
     responsive: true,
     scales: {
@@ -103,8 +120,8 @@ const Hourly: React.FC<ContainerProps> = (props) => {
           ticks: {
             min: 0,
             max:
-              Math.max.apply(Math, precipitations) < 0.8
-                ? Math.max.apply(Math, precipitations) + 0.2
+              Math.max.apply(Math, rains) < 0.8
+                ? Math.max.apply(Math, rains) + 0.2
                 : 1,
           },
         },
@@ -127,6 +144,40 @@ const Hourly: React.FC<ContainerProps> = (props) => {
     legend: { display: false },
   };
 
+  const popOptions: any = {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: {
+      yAxes: [
+        {
+          type: "linear",
+          display: false,
+          ticks: {
+            min: 0,
+            max: 105,
+          },
+        },
+      ],
+    },
+    plugins: {
+      datalabels: {
+        align: (context: any) =>
+          context.dataset.data[context.dataIndex] < 80 ? "end" : "start",
+        anchor: (context: any) =>
+          context.dataset.data[context.dataIndex] < 80 ? "end" : "start",
+        backgroundColor: "rgba(75,192,192,.2)",
+        color: "rgba(75,192,192,1)",
+        borderRadius: 4,
+        font: {
+          weight: "bold",
+        },
+        formatter: (value: string, _: any) => value + "%",
+        display: (context: any) => context.dataset.data[context.dataIndex] > 0,
+      },
+    },
+    legend: { display: false },
+  };
+
   return (
     <div className="Hourly fade-in">
       <div className="Hourly__title">
@@ -142,7 +193,7 @@ const Hourly: React.FC<ContainerProps> = (props) => {
         <IonSegmentButton value="temperature">
           <IonLabel>Temperatura</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value="precipitations">
+        <IonSegmentButton value="rains">
           <IonLabel>Precipitaciones</IonLabel>
         </IonSegmentButton>
       </IonSegment>
@@ -160,10 +211,17 @@ const Hourly: React.FC<ContainerProps> = (props) => {
         <div className="Hourly__prec-div">
           <h5 className="Hourly__section-header">
             Precipitaciones
-            <label className="Hourly__section-header-label">(mm)</label>
+            {props.weatherData.hourly?.prec ? (
+              <label className="Hourly__section-header-label">(mm)</label>
+            ) : (
+              <label className="Hourly__section-header-label">(%)</label>
+            )}
           </h5>
-
-          <Line data={precData} options={precOptions} />
+          {props.weatherData.hourly?.prec ? (
+            <Line data={rainData} options={rainOptions} />
+          ) : (
+            <Line data={popData} options={popOptions} />
+          )}
         </div>
       )}
     </div>

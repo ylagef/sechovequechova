@@ -34,7 +34,7 @@ export interface WeatherEntity {
 }
 export interface MinutelyEntity {
     dt: number;
-    precipitation: number;
+    rain: number;
 }
 export interface HourlyEntity {
     dt: number;

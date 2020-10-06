@@ -52,7 +52,7 @@ const Current: React.FC<ContainerProps> = (props) => {
 
         <div className="Current__temperature-current">
           <CountUp
-            end={props.weatherData.current?.temperature || 0}
+            end={props.weatherData.current?.temp || 0}
             duration={1}
             decimals={0}
             preserveValue={true}

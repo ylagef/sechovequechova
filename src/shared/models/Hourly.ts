@@ -1,7 +1,7 @@
 export default interface Hourly {
-    temperature?: number;
+    temp?: number;
 
-    precipitation?: number;
+    rain?: number;
 
-    precipitationProb?: number;
+    pop?: number;
 }

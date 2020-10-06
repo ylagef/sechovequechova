@@ -1,5 +1,5 @@
 export default interface Current {
-    temperature?: number;
+    temp?: number;
     feelsLike?: number;
     min?: number;
     max?: number;
