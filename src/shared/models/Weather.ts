@@ -1,11 +1,10 @@
+import City from "./City";
 import Current from "./Current";
 import Daily from "./Daily";
 import Hourly from "./Hourly";
 
 export default interface Weather {
-    id?: string;
-
-    city?: string;
+    city?: City;
 
     daily?: { [key: string]: Daily };
 

@@ -63,11 +63,11 @@ const Header: React.FC<ContainerProps> = (props) => {
         <IonToolbar>
           <div className="Home__top-bar">
             <div className="Home__top-bar-city">
-              {props.weatherData.id && (
+              {props.weatherData.city && (
                 <div className="Home__top-bar-city-inner">
                   <MdLocationOn />
                   <div className="Home__top-bar-city-name">
-                    {props.weatherData.city}
+                    {props.weatherData.city.name}
                   </div>
                 </div>
               )}
@@ -87,7 +87,7 @@ const Header: React.FC<ContainerProps> = (props) => {
 
             {props.searching ? (
               <div className="Home__top-bar-cancel">
-                {props.weatherData.id && (
+                {props.weatherData.city && (
                   <MdClose onClick={() => props.setSearching(false)} />
                 )}
               </div>

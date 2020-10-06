@@ -55,7 +55,7 @@ const Home: React.FC = () => {
 
   const doRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     setShowLoading(true);
-    await owmGetWeatherData(weatherData.id, setWeatherData, handleError);
+    await owmGetWeatherData(weatherData.city, setWeatherData, handleError);
     event.detail.complete();
     window.scrollTo(0, 0);
     setShowLoading(false);
@@ -111,7 +111,7 @@ const Home: React.FC = () => {
             setSearching={setSearching}
           />
         ) : (
-          weatherData.id && (
+          weatherData.city && (
             <div>
               <IonRefresher
                 slot="fixed"

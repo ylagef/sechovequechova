@@ -1,20 +1,18 @@
 import Weather from "../../../shared/models/Weather";
-import OwmDaily from "../models/owm-daily";
-import OwmHourly from "../models/owm-hourly";
 import axios from 'axios';
 import { Plugins } from "@capacitor/core";
 import City from "../../../shared/models/City";
+import { OwmData } from "../models/owm-data";
 const { Storage } = Plugins;
 
 const apiKey = "dde3b622ba086b84425094d1d5ba3f85";
 
 function getData(city: City) {
     return axios({
-        url: `https://api.openweathermap.org/data/2.5/onecall?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric`,
+        url: `https://api.openweathermap.org/data/2.5/onecall?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&exclude=minutely`,
         method: 'get'
     }).then(async response => {
-        console.log(response.data);
-        return response.data[0] as OwmHourly;
+        return response.data as OwmData;
     }).catch(e => {
         console.error('getHourlyData - ' + e);
         return Promise.resolve(null);
@@ -79,76 +77,80 @@ function parseSky(sky: string): string {
     }
 }
 
-export async function owmGetWeatherData(city: City, setWeatherData: any, handleError: any): Promise<any> {
+function getFormattedTime(time: number) {
+    const date = new Date(time * 1000);
+    return (date.getHours() > 9 ? date.getHours() : '0' + date.getHours()) + ':' + (date.getMinutes() > 9 ? date.getMinutes() : '0' + date.getMinutes());
+}
+
+export async function owmGetWeatherData(city: any, setWeatherData: any, handleError: any): Promise<any> {
     const data = await getData(city);
 
     console.log('d', data);
-    // console.log('h', hourly);
-    // if (daily && hourly) {
-    //     console.log('dp', daily.prediccion);
-    //     console.log('hp', hourly.prediccion);
+    if (data) {
+        //     console.log('dp', daily.prediccion);
+        //     console.log('hp', hourly.prediccion);
 
-    //     let weather: Weather = {};
-    //     weather.id = id;
-    //     weather.city = daily.nombre;
+        let weather: Weather = {};
+        //     weather.id = id;
+        weather.city = city;
 
-    //     const date = new Date();
-    //     const currentDate = date.getFullYear() + '-' + ((date.getMonth() + 1) <= 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)) + '-' + (date.getDate() <= 9 ? '0' + date.getDate() : date.getDate());
-    //     const currentPeriod = (new Date().getHours() <= 9) ? '0' + new Date().getHours() : '' + new Date().getHours();
-    //     weather.current = {
-    //         temperature: +getDataByDate(hourly, currentDate, 'temperatura', currentPeriod).value,
-    //         feelsLike: +getDataByDate(hourly, currentDate, 'sensTermica', currentPeriod).value,
-    //         min: getMinValue(hourly, currentDate, 'temperatura'),
-    //         max: getMaxValue(hourly, currentDate, 'temperatura'),
-    //         sky: { icon: parseSky(getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion), text: getDataByDate(hourly, currentDate, 'estadoCielo', currentPeriod).descripcion },
-    //         rain: +getDataByDate(hourly, currentDate, 'precipitacion', currentPeriod).value,
-    //         humidity: +getDataByDate(hourly, currentDate, 'humedadRelativa', currentPeriod).value,
-    //         windSpeed: +getDataByDate(hourly, currentDate, 'vientoAndRachaMax', currentPeriod).velocidad[0],
-    //         windDirection: getDataByDate(hourly, currentDate, 'vientoAndRachaMax', currentPeriod).direccion[0],
-    //         sunrise: getDataByDate(hourly, currentDate, 'orto'),
-    //         sunset: getDataByDate(hourly, currentDate, 'ocaso'),
-    //     };
+        //     const date = new Date();
+        //     const currentDate = date.getFullYear() + '-' + ((date.getMonth() + 1) <= 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)) + '-' + (date.getDate() <= 9 ? '0' + date.getDate() : date.getDate());
+        //     const currentPeriod = (new Date().getHours() <= 9) ? '0' + new Date().getHours() : '' + new Date().getHours();
+        weather.current = {
+            temperature: data.current.temp,
+            feelsLike: data.current.feels_like,
+            min: (data.daily || [])[0].temp.min,
+            max: (data.daily || [])[0].temp.max,
+            sky: { icon: parseSky((data.current.weather || [])[0].description), text: (data.current.weather || [])[0].main },
+            rain: data.current.rain['1h'],
+            humidity: data.current.humidity,
+            windSpeed: data.current.wind_speed,
+            windDirection: data.current.wind_deg,
+            sunrise: getFormattedTime((data.daily || [])[0].sunrise),
+            sunset: getFormattedTime((data.daily || [])[0].sunset)
+        };
 
-    //     weather.updated = new Date(daily.elaborado);
+        //     weather.updated = new Date(daily.elaborado);
 
-    //     let dailyAux: { [key: string]: any } = {};
-    //     [0, 1, 2, 3, 4, 5, 6].forEach(i => {
-    //         const formatedDay = daily.prediccion.dia[i].fecha.split('-')[2].split('T')[0] + '/' + daily.prediccion.dia[i].fecha.split('-')[1];
+        let dailyAux: { [key: string]: any } = {};
+        //     [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+        //         const formatedDay = daily.prediccion.dia[i].fecha.split('-')[2].split('T')[0] + '/' + daily.prediccion.dia[i].fecha.split('-')[1];
 
-    //         [
-    //             ['temperatura', 'max', 'maxima', 'value'],
-    //             ['temperatura', 'min', 'minima', 'value'],
-    //             ['probPrecipitacion', 'precipitationProb', 'value', 'avg']
-    //         ].forEach((param: string[]) => {
-    //             if (!dailyAux[formatedDay]) { dailyAux[formatedDay] = {} }
-    //             dailyAux[formatedDay][param[1]] = (param[3] && param[3] === 'value') ? +daily.prediccion.dia[i][param[0]][param[2]] : Math.round(getAvg(daily.prediccion.dia[i], param[0], param[2]));
-    //         });
-    //     })
-    //     weather.daily = dailyAux;
+        //         [
+        //             ['temperatura', 'max', 'maxima', 'value'],
+        //             ['temperatura', 'min', 'minima', 'value'],
+        //             ['probPrecipitacion', 'precipitationProb', 'value', 'avg']
+        //         ].forEach((param: string[]) => {
+        //             if (!dailyAux[formatedDay]) { dailyAux[formatedDay] = {} }
+        //             dailyAux[formatedDay][param[1]] = (param[3] && param[3] === 'value') ? +daily.prediccion.dia[i][param[0]][param[2]] : Math.round(getAvg(daily.prediccion.dia[i], param[0], param[2]));
+        //         });
+        //     })
+        weather.daily = dailyAux;
 
-    //     let hourlyAux: { [key: string]: any } = {};
-    //     const indexToday = hourly.prediccion.dia.findIndex((d: any) => new Date(d.fecha).getDate() === new Date().getDate());
-    //     console.warn('today', indexToday);
-    //     [indexToday, indexToday + 1].forEach(i => {
-    //         [
-    //             ['temperatura', 'temperature', 'value'],
-    //             ['precipitacion', 'precipitation', 'value'],
-    //             ['probPrecipitacion', 'precipitationProb', 'value']
-    //         ].forEach((param: string[]) => {
-    //             hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
-    //                 if ((i === indexToday && +item.periodo >= new Date().getHours())
-    //                     || (i === (indexToday + 1) && +item.periodo < new Date().getHours())) {
-    //                     if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
-    //                     hourlyAux[item.periodo][param[1]] = +item[param[2]];
-    //                 }
-    //             });
-    //         });
-    //     })
-    //     weather.hourly = hourlyAux;
+        let hourlyAux: { [key: string]: any } = {};
+        //     const indexToday = hourly.prediccion.dia.findIndex((d: any) => new Date(d.fecha).getDate() === new Date().getDate());
+        //     console.warn('today', indexToday);
+        //     [indexToday, indexToday + 1].forEach(i => {
+        //         [
+        //             ['temperatura', 'temperature', 'value'],
+        //             ['precipitacion', 'precipitation', 'value'],
+        //             ['probPrecipitacion', 'precipitationProb', 'value']
+        //         ].forEach((param: string[]) => {
+        //             hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
+        //                 if ((i === indexToday && +item.periodo >= new Date().getHours())
+        //                     || (i === (indexToday + 1) && +item.periodo < new Date().getHours())) {
+        //                     if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
+        //                     hourlyAux[item.periodo][param[1]] = +item[param[2]];
+        //                 }
+        //             });
+        //         });
+        //     })
+        weather.hourly = hourlyAux;
 
-    //     console.log(weather);
-    //     return setWeatherData(weather);
-    // } else {
-    return handleError('Error en la consulta');
-    // }
+        console.log(weather);
+        return setWeatherData(weather);
+    } else {
+        return handleError('Error en la consulta');
+    }
 }

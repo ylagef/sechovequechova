@@ -190,8 +190,7 @@ export async function aemetGetWeatherData(id: any, setWeatherData: any, handleEr
         console.log('hp', hourly.prediccion);
 
         let weather: Weather = {};
-        weather.id = id;
-        weather.city = daily.nombre;
+        weather.city = { name: daily.nombre, id: id }; 
 
         const date = new Date();
         const currentDate = date.getFullYear() + '-' + ((date.getMonth() + 1) <= 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)) + '-' + (date.getDate() <= 9 ? '0' + date.getDate() : date.getDate());
