@@ -44,27 +44,34 @@ const Home: React.FC = () => {
 
   const [error, setError]: [string, SetStateAction<any>] = useState("");
 
+  const [dataSource, setDataSource]: [string, SetStateAction<any>] = useState(
+    "aemet"
+  );
+
   const [weatherData, setWeatherData]: [
     Weather,
     SetStateAction<any>
   ] = useState({});
 
-  const [dataSource, setDataSource]: [string, SetStateAction<any>] = useState(
-    "aemet"
-  );
-
   const handleDataSource = async (e: any) => {
-    await Storage.remove({ key: "city" });
     setDataSource(e.detail.value);
-    setSearching(true);
-    setWeatherData({});
+
+    await Storage.set({
+      key: "data_source",
+      value: e.detail.value,
+    });
   };
 
-  const handleError = (error: string) => {
+  useEffect(() => {
+    if (weatherData.city) {
+      doRefresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataSource]);
+
+  const handleError = async (error: string) => {
     setError(error);
-    setWeatherData({});
     setShowToast(true);
-    setSearching(true);
     setShowLoading(false);
   };
 
@@ -73,7 +80,11 @@ const Home: React.FC = () => {
     dataSource === "aemet"
       ? await aemetGetWeatherData(weatherData.city, setWeatherData, handleError)
       : await owmGetWeatherData(weatherData.city, setWeatherData, handleError);
-    event?.detail.complete();
+
+    if (event) {
+      event?.detail.complete();
+    }
+
     window.scrollTo(0, 0);
     setShowLoading(false);
   };
@@ -93,29 +104,53 @@ const Home: React.FC = () => {
   };
 
   const handleInitialCity = async () => {
-    const storageCity = (
+    const storageData = (
       await Storage.get({
-        key: "city",
+        key: "data",
       })
     ).value;
 
-    const city = storageCity ? JSON.parse(storageCity) : null;
-
-    if (city) {
-      dataSource === "aemet"
-        ? await aemetGetWeatherData(city, setWeatherData, handleError)
-        : await owmGetWeatherData(city, setWeatherData, handleError);
+    const data = storageData ? (JSON.parse(storageData) as Weather) : null;
+    if (data) {
+      setWeatherData(data);
       setShowLoading(false);
     } else {
-      setSearching(true);
-      setShowLoading(false);
+      const storageCity = (
+        await Storage.get({
+          key: "city",
+        })
+      ).value;
+
+      const city = storageCity ? JSON.parse(storageCity) : null;
+
+      if (city) {
+        dataSource === "aemet"
+          ? await aemetGetWeatherData(city, setWeatherData, handleError)
+          : await owmGetWeatherData(city, setWeatherData, handleError);
+        setShowLoading(false);
+      } else {
+        setSearching(true);
+        setShowLoading(false);
+      }
     }
   };
 
+  const handleInitialDataSource = async () => {
+    const initialDataSource = (
+      await Storage.get({
+        key: "data_source",
+      })
+    ).value;
+
+    setDataSource(initialDataSource || "aemet");
+  };
+
   useEffect(() => {
+    handleInitialDataSource();
     setShowLoading(true);
     handleInitialCity();
     handleTheme(true, setTheme);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -154,6 +189,17 @@ const Home: React.FC = () => {
               <Divisor width={80} borderWidth={2} />
 
               <Daily weatherData={weatherData} />
+
+              <Divisor width={80} borderWidth={2} />
+
+              {weatherData.updated && (
+                <div className="Home__last-updated">
+                  <label>
+                    Última actualización{" "}
+                    {new Date(weatherData.updated).toLocaleTimeString()}
+                  </label>
+                </div>
+              )}
 
               <div className="Home__powered">
                 Powered by{" "}

@@ -1,4 +1,12 @@
+.Home__last-updated {
+  opacity: 0.5;
+  margin-top: 15px;
+  font-size: 0.7em;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .Home__powered {
   width: 100%;

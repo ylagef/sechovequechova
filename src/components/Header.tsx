@@ -57,6 +57,7 @@ const Header: React.FC<ContainerProps> = (props) => {
           </div>
         </IonToolbar>
       </IonHeader>
+
       <IonModal isOpen={showSettings}>
         <Settings
           setShowSettings={setShowSettings}

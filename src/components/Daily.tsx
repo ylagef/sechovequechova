@@ -2,7 +2,6 @@ import React, { SetStateAction, useState } from "react";
 import Weather from "../shared/models/Weather";
 import "./Daily.css";
 import ChartComponent, { Line } from "react-chartjs-2";
-import Divisor from "../shared/components/Divisor";
 import { IonSegment, IonSegmentButton, IonLabel } from "@ionic/react";
 
 interface ContainerProps {
@@ -66,7 +65,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
     ],
   };
 
-  const tempOptions: any = {
+  const maxMinOptions: any = {
     maintainAspectRatio: false,
     responsive: true,
     scales: {
@@ -166,7 +165,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
             <label className="Daily__section-header-label">(ºC)</label>
           </h5>
 
-          <Line data={tempData} options={tempOptions} />
+          <ChartComponent type="line" data={tempData} options={maxMinOptions} />
         </div>
       ) : (
         <div className="Daily__prec-div">

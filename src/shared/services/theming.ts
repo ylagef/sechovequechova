@@ -3,53 +3,33 @@ const { Storage } = Plugins;
 
 export async function handleTheme(initial: boolean, setTheme: any, theme?: string) {
     if (initial) {
-        console.log('Initial theme handling...');
         const savedTheme = (await Storage.get({
             key: "theme",
         })).value;
 
-        console.log('Saved', savedTheme);
-        if (savedTheme) {
-            document.body.classList.toggle(
-                "dark",
-                savedTheme === "dark"
-            );
-            setTheme(savedTheme);
-        } else {
-            await Storage.set({
-                key: "theme",
-                value: 'dark',
-            });
-            setTheme('dark');
-            document.body.classList.toggle(
-                "dark",
-                true
-            );
-        }
+        (savedTheme) ? persistTheme(savedTheme, false, setTheme) : persistTheme('dark', true, setTheme);
     } else if (theme) {
-        console.log('Change theme handling...', theme);
+        persistTheme(theme, true, setTheme);
+    }
 
-        document.body.classList.toggle(
-            "dark",
-            theme === "dark"
-        );
+    console.warn('Handle theme called and did nothing.');
+}
 
-        setTheme(theme);
+async function persistTheme(theme: string, storage: boolean, setTheme: any) {
+    if (storage) {
         await Storage.set({
             key: "theme",
             value: theme,
         });
     }
 
-    // const newTheme = !initial
-    //     ? savedTheme === "dark"
-    //         ? "light"
-    //         : "dark"
-    //     : savedTheme;
+    setTheme(theme);
+    toggleDark(theme === "dark");
+}
 
-    // document.body.classList.toggle(
-    //     "dark",
-    //     savedTheme ? savedTheme === "dark" : true
-    // );
-
+function toggleDark(toggle: boolean) {
+    document.body.classList.toggle(
+        "dark",
+        toggle
+    );
 }

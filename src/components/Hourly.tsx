@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import React, { SetStateAction, useState } from "react";
 import Weather from "../shared/models/Weather";
 import "./Hourly.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -34,6 +34,7 @@ const Hourly: React.FC<ContainerProps> = (props) => {
   hours.forEach((h) => {
     temperatures.push((props.weatherData.hourly || {})[h].temp || 0);
   });
+  console.log(hours, temperatures);
 
   const pop: number[] = [];
   hours.forEach((h) => {

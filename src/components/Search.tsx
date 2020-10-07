@@ -1,6 +1,6 @@
 import { IonItem, IonLabel, IonInput } from "@ionic/react";
 import React, { SetStateAction, useState } from "react";
-import townCodes from "../api/aemet/static/aemet-town-codes";
+import aemetTownCodes from "../api/aemet/static/aemet-town-codes";
 import owmTownData from "../api/owm-service/static/owm-town-data";
 import Card from "../shared/components/Card";
 import City from "../shared/models/City";
@@ -20,9 +20,12 @@ const Search: React.FC<ContainerProps> = (props) => {
   const getFilteredCities = () => {
     return props.dataSource === "aemet"
       ? Object.values(
-          townCodes
+          aemetTownCodes
             .filter((item) =>
-              item.nm.toLowerCase().includes(searchValue.toLowerCase())
+              item.nm
+                .toLowerCase()
+                .replace(/[^A-Z0-9]/gi, "")
+                .includes(searchValue.toLowerCase().replace(/[^A-Z0-9]/gi, ""))
             )
             .sort((a, b) => (a.nm > b.nm ? 1 : -1))
             .map((c) => {
@@ -32,7 +35,10 @@ const Search: React.FC<ContainerProps> = (props) => {
       : Object.values(
           owmTownData
             .filter((item) =>
-              item.city.toLowerCase().includes(searchValue.toLowerCase())
+              item.city
+                .toLowerCase()
+                .replace(/[^A-Z0-9]/gi, "")
+                .includes(searchValue.toLowerCase().replace(/[^A-Z0-9]/gi, ""))
             )
             .sort((a, b) => (a.city > b.city ? 1 : -1))
             .map((c) => {
@@ -41,8 +47,26 @@ const Search: React.FC<ContainerProps> = (props) => {
         );
   };
 
-  const selectCity = (item: City) => {
-    props.setCurrentCity(item);
+  const selectCity = (city: City) => {
+    const aemetCity = aemetTownCodes.find(
+      (c) =>
+        c.nm.toLowerCase().replace(/[^A-Z0-9]/gi, "") ===
+        city.name.toLowerCase().replace(/[^A-Z0-9]/gi, "")
+    );
+    const owmCity = owmTownData.find(
+      (c) =>
+        c.city.toLowerCase().replace(/[^A-Z0-9]/gi, "") ===
+        city.name.toLowerCase().replace(/[^A-Z0-9]/gi, "")
+    );
+
+    if (city.id) {
+      city.lat = +(owmCity?.lat || 0);
+      city.lon = +(owmCity?.lon || 0);
+    } else {
+      city.id = +(aemetCity?.id || -1);
+    }
+
+    props.setCurrentCity(city);
     props.setSearching(false);
   };
 

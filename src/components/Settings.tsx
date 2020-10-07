@@ -1,4 +1,4 @@
-import React, { SetStateAction, useState } from "react";
+import React from "react";
 import "./Settings.css";
 import { MdClose } from "react-icons/md";
 import { IoMdSunny, IoMdMoon } from "react-icons/io";
@@ -68,10 +68,6 @@ const Settings: React.FC<ContainerProps> = (props) => {
             <label>Openweathermap</label>
           </IonSegmentButton>
         </IonSegment>
-
-        <label className="Settings__label-info">
-          Este cambio reiniciará la ciudad actual
-        </label>
       </Card>
     </div>
   );
