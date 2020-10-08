@@ -84,12 +84,10 @@ export async function owmGetWeatherData(city: any, setWeatherData: any, handleEr
             let hourlyAux: { [key: string]: any } = {};
 
             data.hourly?.forEach((h: any, index: number) => {
-                if (index < 10) {
-                    const day = getFormattedTime(h.dt).split(':')[0];
-                    hourlyAux[day] = {};
-                    hourlyAux[day].temp = Math.round(+h.temp);
-                    hourlyAux[day].pop = Math.round(+h.pop * 100);
-                }
+                const day = getFormattedTime(h.dt).split(':')[0];
+                hourlyAux[day] = {};
+                hourlyAux[day].temp = Math.round(+h.temp);
+                hourlyAux[day].pop = Math.round(+h.pop * 100);
             });
             weather.hourly = hourlyAux;
 

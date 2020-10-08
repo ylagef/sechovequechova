@@ -223,9 +223,8 @@ export async function aemetGetWeatherData(city: any, setWeatherData: any, handle
                     ['probPrecipitacion', 'pop', 'value']
                 ].forEach((param: string[]) => {
                     hourly.prediccion.dia[i][param[0]].forEach((item: any) => {
-                        if ((item.periodo.length === 2) && Object.keys(hourlyAux).length < 10
-                            && ((i === indexToday && +item.periodo >= new Date().getHours())
-                                || (i === (indexToday + 1) && +item.periodo < new Date().getHours()))) {
+                        if (item.periodo.length === 2 && ((i === indexToday && +item.periodo >= new Date().getHours())
+                            || (i === (indexToday + 1) && +item.periodo < new Date().getHours()))) {
                             if (!hourlyAux[item.periodo]) { hourlyAux[item.periodo] = {} }
                             hourlyAux[item.periodo][param[1]] = +item[param[2]];
                         }
@@ -238,7 +237,7 @@ export async function aemetGetWeatherData(city: any, setWeatherData: any, handle
             await Storage.set({
                 key: "data",
                 value: JSON.stringify(weather),
-              });
+            });
             return setWeatherData(weather);
         } else {
             return handleError('Error en la consulta');

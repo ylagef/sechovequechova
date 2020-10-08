@@ -1,7 +1,7 @@
 import React, { SetStateAction, useState } from "react";
 import Weather from "../shared/models/Weather";
 import "./Daily.css";
-import ChartComponent, { Line } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import { IonSegment, IonSegmentButton, IonLabel } from "@ionic/react";
 
 interface ContainerProps {
@@ -32,47 +32,39 @@ const Daily: React.FC<ContainerProps> = (props) => {
   });
 
   const tempData = {
-    labels: ["", ...days, ""],
+    labels: days,
     datasets: [
       {
-        label: "Temp. mínima (ºC)",
-        backgroundColor: "rgba(75,192,192,0.1)",
-        borderColor: "rgba(75,192,192,1)",
-        borderWidth: 1,
-        data: [null, ...min, null],
-      },
-      {
-        label: "Temp. máxima (ºC)",
+        label: "daily_max",
         backgroundColor: "rgba(255,99,132,0.1)",
         borderColor: "rgba(255,99,132,1)",
-
-        borderWidth: 1,
-        data: [null, ...max, null],
+        data: max,
+      },
+      {
+        label: "daily",
+        backgroundColor: "rgba(75,192,192,0.1)",
+        borderColor: "rgba(75,192,192,1)",
+        data: min,
       },
     ],
   };
 
   const precData = {
-    labels: ["", ...days, ""],
+    labels: days,
     datasets: [
       {
-        label: "Probabilidad de precipitaciones (%)",
+        label: "daily",
         backgroundColor: "rgba(75,192,192,0.1)",
         borderColor: "rgba(75,192,192,1)",
-        borderWidth: 1,
-        data: [null, ...precipitationsProb, null],
+        data: precipitationsProb,
       },
     ],
   };
 
   const maxMinOptions: any = {
-    maintainAspectRatio: false,
-    responsive: true,
     scales: {
       yAxes: [
         {
-          type: "linear",
-          display: false,
           ticks: {
             min: Math.min(...min) - 5,
             max: Math.max(...max) + 5,
@@ -83,35 +75,26 @@ const Daily: React.FC<ContainerProps> = (props) => {
     plugins: {
       datalabels: {
         align: (context: any, _: any) =>
-          context.datasetIndex === 0 ? "start" : "end",
+          context.datasetIndex === 1 ? "start" : "end",
         anchor: (context: any, _: any) =>
-          context.datasetIndex === 0 ? "start" : "end",
+          context.datasetIndex === 1 ? "start" : "end",
         color: (context: any, _: any) =>
-          context.datasetIndex === 0
+          context.datasetIndex === 1
             ? "rgba(75,192,192,1)"
             : "rgba(255,99,132,1)",
         backgroundColor: (context: any, _: any) =>
-          context.datasetIndex === 0
+          context.datasetIndex === 1
             ? "rgba(75,192,192,.2)"
             : "rgba(255,99,132,.2)",
-        borderRadius: 4,
-        font: {
-          weight: "bold",
-        },
         formatter: (value: string, _: any) => value + "º",
       },
     },
-    legend: { display: false },
   };
 
   const precOptions: any = {
-    maintainAspectRatio: false,
-    responsive: true,
     scales: {
       yAxes: [
         {
-          type: "linear",
-          display: false,
           ticks: {
             min: 0,
             max: 105,
@@ -127,15 +110,10 @@ const Daily: React.FC<ContainerProps> = (props) => {
           context.dataset.data[context.dataIndex] < 80 ? "end" : "start",
         backgroundColor: "rgba(75,192,192,.2)",
         color: "rgba(75,192,192,1)",
-        borderRadius: 4,
-        font: {
-          weight: "bold",
-        },
         formatter: (value: string, _: any) => value + "%",
         display: (context: any) => context.dataset.data[context.dataIndex] > 0,
       },
     },
-    legend: { display: false },
   };
 
   return (
@@ -165,7 +143,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
             <label className="Daily__section-header-label">(ºC)</label>
           </h5>
 
-          <ChartComponent type="line" data={tempData} options={maxMinOptions} />
+          <Line data={tempData} options={maxMinOptions} height={200} />
         </div>
       ) : (
         <div className="Daily__prec-div">
@@ -174,7 +152,7 @@ const Daily: React.FC<ContainerProps> = (props) => {
             <label className="Daily__section-header-label">(%)</label>
           </h5>
 
-          <Line data={precData} options={precOptions} />
+          <Line data={precData} options={precOptions} height={200} />
         </div>
       )}
     </div>
